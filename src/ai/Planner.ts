@@ -1,16 +1,20 @@
 import type { Action } from '../actions/Action';
 import type { Fact } from '../typings/Fact';
 import type { Facts } from '../typings/Facts';
+import type { GraphNode } from '../typings/GraphNode';
 import { byCost } from '../utils/byCost';
 import { entries } from '../utils/entries';
 import { exclude } from '../utils/exclude';
-import { fromEntries } from '../utils/fromEntries';
 import type { Agent } from './Agent';
-import { GraphNode } from './GraphNode';
 
 export class Planner {
   plan(this: this, agent: Agent, goal: Fact): readonly Action[] {
-    const root = new GraphNode(null, null, 0, agent.state);
+    const root: GraphNode = {
+      action: null,
+      cost: 0,
+      parent: null,
+      state: agent.state,
+    } as const;
 
     const leaves: GraphNode[] = [];
 
@@ -48,18 +52,23 @@ export class Planner {
     for (const action of actions) {
       if (!this.arePreconditionsMet(parent.state, action.preconditions)) continue;
 
-      const currentState = this.applyState(parent.state, action.effects);
+      const currentFacts: Facts = { ...parent.state, ...action.effects } as const;
 
-      const node = new GraphNode(parent, action, parent.cost + action.cost, currentState);
+      const node: GraphNode = {
+        action,
+        cost: parent.cost + action.cost,
+        parent,
+        state: currentFacts,
+      } as const;
 
-      const isGoalMet = currentState[goal.name] === goal.value;
+      const isGoalMet = currentFacts[goal.name] === goal.value;
 
       if (isGoalMet) {
         leaves.push(node);
         continue;
       }
 
-      const remainingActions = actions.filter(exclude(action));
+      const remainingActions: readonly Action[] = actions.filter(exclude(action));
 
       this.buildGraph(node, leaves, remainingActions, goal);
     }
@@ -71,9 +80,5 @@ export class Planner {
     }
 
     return true;
-  }
-
-  private applyState(this: this, old: Facts, newState: Facts): Facts {
-    return fromEntries([...entries(old), ...entries(newState)] as const);
   }
 }

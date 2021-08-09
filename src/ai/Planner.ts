@@ -8,33 +8,58 @@ import { exclude } from '../utils/exclude';
 import type { Agent } from './Agent';
 
 export class Planner {
-  plan(this: this, agent: Agent, goal: Goal): readonly Action[] {
+  readonly graph: GraphNode[] = [];
+
+  resetGraph(this: this): void {
+    this.graph.length = 0;
+  }
+
+  devisePlan(this: this, agent: Agent): void {
+    this.resetGraph();
+
     const root: GraphNode = {
       action: null,
       cost: 0,
-      facts: agent.state,
+      facts: agent.facts,
       parent: null,
     } as const;
 
-    const leaves: GraphNode[] = [];
+    this.buildGraph(root, this.graph, agent.actions, agent.goal);
 
-    this.buildGraph(root, leaves, agent.actions, goal);
+    this.graph.sort(byCost);
 
-    leaves.sort(byCost);
-
-    if (!leaves.length) throw new RangeError('no leaves!');
-
-    const plan = this.traverseGraphFrom(leaves);
-
-    if (!plan.length) throw new RangeError('no plan!');
-
-    return plan;
+    this.traverseGraph(this.graph, agent.currentPlan);
   }
 
-  private traverseGraphFrom(this: this, leaves: readonly GraphNode[]): readonly Action[] {
-    const cheapest: GraphNode | null = leaves[0] ?? null;
+  /** NOTE: gross side-effect. Mutates `leaves`. */
+  private buildGraph(this: this, parent: GraphNode, leaves: GraphNode[], actions: readonly Action[], goal: Goal): void {
+    for (const action of actions) {
+      if (!this.arePreconditionsMet(parent.facts, action.before)) continue;
 
-    const plan: Action[] = [];
+      const currentFacts = { ...parent.facts, ...action.after };
+
+      const node: GraphNode = {
+        action,
+        cost: parent.cost + action.cost,
+        facts: currentFacts,
+        parent,
+      } as const;
+
+      const isGoalMet = currentFacts[goal.name] === goal.value;
+
+      if (isGoalMet) {
+        leaves.push(node);
+        continue;
+      }
+
+      const remainingActions = actions.filter(exclude(action));
+
+      this.buildGraph(node, leaves, remainingActions, goal);
+    }
+  }
+
+  private traverseGraph(this: this, leaves: readonly GraphNode[], plan: Action[]): void {
+    const cheapest: GraphNode | null = leaves[0] ?? null;
 
     let node: GraphNode | null = cheapest;
 
@@ -43,38 +68,11 @@ export class Planner {
 
       node = node.parent;
     }
-
-    return plan;
-  }
-
-  /** NOTE: gross side-effect. Mutates `leaves`. */
-  private buildGraph(this: this, parent: GraphNode, leaves: GraphNode[], actions: readonly Action[], goal: Goal): void {
-    for (const action of actions) {
-      if (!this.arePreconditionsMet(parent.facts, action.preConditions)) continue;
-
-      const node: GraphNode = {
-        action,
-        cost: parent.cost + action.cost,
-        facts: { ...parent.facts, ...action.postConditions },
-        parent,
-      } as const;
-
-      const isGoalMet = node.facts[goal.name] === goal.value;
-
-      if (isGoalMet) {
-        leaves.push(node);
-        continue;
-      }
-
-      const remainingActions: readonly Action[] = actions.filter(exclude(action));
-
-      this.buildGraph(node, leaves, remainingActions, goal);
-    }
   }
 
   private arePreconditionsMet(this: this, facts: Facts, preconditions: Facts): boolean {
-    for (const [name, value] of entries(preconditions)) {
-      if (!facts[name] === value) return false;
+    for (const [key, value] of entries(preconditions)) {
+      if (facts[key] !== value) return false;
     }
 
     return true;

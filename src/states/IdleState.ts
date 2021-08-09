@@ -1,28 +1,24 @@
-import type { Action } from '../actions/Action';
 import type { Agent } from '../ai/Agent';
 import type { State } from '../typings/State';
 
 export class IdleState implements State {
-  private readonly entity: Agent;
+  private readonly agent: Agent;
 
   constructor(entity: Agent) {
-    this.entity = entity;
+    this.agent = entity;
   }
 
   enter(this: this): void {
-    console.debug(`${this.entity.name} enters ${this.constructor.name}`);
+    console.debug(`${this.agent.name}: idle`);
   }
 
   leave(this: this): void {
-    console.debug(`${this.entity.name} leaves ${this.constructor.name}`);
+    // console.debug(`${this.agent.name} -> stop idling`);
   }
 
   update(this: this): void {
-    const plan = this.entity.plan();
+    if (!this.agent.currentPlan.length) return;
 
-    if (!plan.length) return;
-
-    this.entity.currentPlan = plan as Action[];
-    this.entity.stateMachine.enter('moving');
+    this.agent.startMoving();
   }
 }

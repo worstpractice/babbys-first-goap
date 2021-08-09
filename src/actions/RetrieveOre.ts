@@ -8,9 +8,7 @@ export class RetrieveOre extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 1, position, agent);
 
-    this.from('has_ore', false);
-    this.from('has_pickaxe', false);
-    this.to('has_ore', true);
+    this.retrieves('ore');
   }
 
   canExecute(this: this): boolean {

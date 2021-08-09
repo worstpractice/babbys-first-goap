@@ -1,6 +1,7 @@
 import type { GameObjects } from 'phaser';
 import Phaser from 'phaser';
 import { Agent } from '../ai/Agent';
+import { Planner } from '../ai/Planner';
 import { AGENT_NAMES } from '../constants/AGENT_NAMES';
 import { KEY_PATH_PAIRS } from '../constants/KEY_PATH_PAIRS';
 import { SPRITE_NAMES } from '../constants/SPRITE_NAMES';
@@ -10,6 +11,7 @@ import { startingActions } from '../starting/startingActions';
 import { startingFacts } from '../starting/startingFacts';
 import { startingGoals } from '../starting/startingGoals';
 import { startingPositions } from '../starting/startingPositions';
+import { StateMachine } from '../states/StateMachine';
 import type { AgentName } from '../typings/AgentName';
 import type { SpriteName } from '../typings/SpriteName';
 import type { Table } from '../typings/Table';
@@ -22,6 +24,10 @@ export class DemoScene extends Phaser.Scene {
   readonly texts = {} as Table<TextName, GameObjects.Text>;
 
   readonly sprites = {} as Table<SpriteName, GameObjects.Sprite>;
+
+  private timerHandle: ReturnType<Window['setTimeout']> = -1;
+
+  private planningCooldownInMs = 1000;
 
   constructor() {
     super({
@@ -41,36 +47,55 @@ export class DemoScene extends Phaser.Scene {
   }
 
   create(this: this): void {
-    this.#spawnGrass();
-    this.#spawnSprites();
-    this.#spawnAgents();
-    this.#spawnText();
+    this.spawnGrass();
+    this.spawnSprites();
+    this.spawnAgents();
+    this.spawnText();
+    this.spawnPlans();
   }
 
   update(this: this): void {
-    this.#updateAgents();
-    this.#updateTexts();
+    this.updateAgents();
+    this.updateTexts();
   }
 
-  #updateAgents(this: this): void {
+  private spawnPlans(this: this): void {
+    this.queueReplan(); // Kick off the recursion
+  }
+
+  private readonly queueReplan = () => {
+    this.timerHandle = window.setTimeout(this.replan, this.planningCooldownInMs);
+  };
+
+  private readonly replan = () => {
+    window.clearTimeout(this.timerHandle);
+
+    for (const name of AGENT_NAMES) {
+      this.agents[name].plan();
+    }
+
+    this.queueReplan();
+  };
+
+  private updateAgents(this: this): void {
     for (const name of AGENT_NAMES) {
       this.agents[name].update();
     }
   }
 
-  #updateTexts(this: this): void {
+  private updateTexts(this: this): void {
     for (const name of TEXT_NAMES) {
       this.texts[name].setText(`${name}: ${storedQuantities[name]}`);
     }
   }
 
-  #spawnGrass(this: this): void {
+  private spawnGrass(this: this): void {
     for (const [x, y] of createGrid(20, 15)) {
       this.add.sprite(x, y, 'grass');
     }
   }
 
-  #spawnSprites(this: this): void {
+  private spawnSprites(this: this): void {
     for (const name of SPRITE_NAMES) {
       const { x, y } = startingPositions[name];
 
@@ -78,19 +103,21 @@ export class DemoScene extends Phaser.Scene {
     }
   }
 
-  #spawnAgents(this: this): void {
+  private spawnAgents(this: this): void {
     for (const name of AGENT_NAMES) {
       this.agents[name] = new Agent({
         derivedActions: startingActions[name],
         initialGoal: startingGoals[name],
         initialState: startingFacts[name],
         name,
+        planner: new Planner(),
         sprite: this.sprites[name],
+        stateMachine: new StateMachine(),
       });
     }
   }
 
-  #spawnText(this: this): void {
+  private spawnText(this: this): void {
     let y = -15;
 
     for (const name of TEXT_NAMES) {

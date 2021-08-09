@@ -3,55 +3,67 @@ import type { Action } from '../actions/Action';
 import { ActionState } from '../states/ActionState';
 import { IdleState } from '../states/IdleState';
 import { MovingState } from '../states/MovingState';
-import { StateMachine } from '../states/StateMachine';
+import type { StateMachine } from '../states/StateMachine';
 import type { ActionName } from '../typings/ActionName';
 import type { DerivedAction } from '../typings/DerivedAction';
 import type { Goal } from '../typings/Fact';
 import type { Facts } from '../typings/Facts';
-import type { Predicate } from '../typings/Predicate';
 import type { Position } from '../typings/Position';
+import type { Predicate } from '../typings/Predicate';
+import { distanceBetween } from '../utils/distanceBetween';
 import { entries } from '../utils/entries';
-import { Planner } from './Planner';
+import type { Planner } from './Planner';
 
 type Props = {
-  readonly name: string;
-  readonly sprite: GameObjects.Sprite;
+  readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
   readonly initialGoal: Goal;
   readonly initialState: Facts;
-  readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
+  readonly name: string;
+  readonly planner: Planner;
+  readonly stateMachine: StateMachine;
+  readonly sprite: GameObjects.Sprite;
 };
 
 export class Agent {
-  readonly actions: Action[] = [];
+  readonly actions: readonly Action[];
 
-  currentPlan: Action[] = [];
+  readonly currentPlan: Action[] = [];
 
-  private readonly goal: Goal;
+  readonly goal: Goal;
 
   readonly name: string;
 
+  readonly planner: Planner;
+
   readonly sprite: GameObjects.Sprite;
 
-  readonly state: Facts = {
+  readonly facts: Facts = {
     has_ore: false,
     has_pickaxe: false,
   };
 
-  readonly stateMachine = new StateMachine();
+  readonly stateMachine: StateMachine;
 
   target: Position | null = null;
 
-  constructor({ derivedActions, initialGoal, initialState, name, sprite }: Props) {
-    this.name = name;
-    this.sprite = sprite;
+  constructor({ derivedActions, initialGoal, initialState, name, planner, stateMachine, sprite }: Props) {
     this.goal = initialGoal;
-    this.state = initialState;
+    this.facts = initialState;
+    this.name = name;
+    this.planner = planner;
+    this.stateMachine = stateMachine;
+    this.sprite = sprite;
 
     this.sprite.setDepth(1337);
 
-    for (const [name, DerivedAction, position] of derivedActions) {
-      this.actions.push(new DerivedAction(name, position, this));
-    }
+    ///////////////////////////////////////////////////////////////
+    // * Init Actions *
+    ///////////////////////////////////////////////////////////////
+    this.actions = derivedActions.map(([name, DerivedAction, position]) => {
+      return new DerivedAction(name, position, this);
+    }) as readonly Action[];
+
+    ///////////////////////////////////////////////////////////////
 
     this.stateMachine.add('idle', new IdleState(this));
     this.stateMachine.add('moving', new MovingState(this));
@@ -64,26 +76,56 @@ export class Agent {
     this.stateMachine.update();
   }
 
-  plan(this: this): readonly Action[] {
-    const planner = new Planner();
-
-    const plan = planner.plan(this, this.goal);
-
-    return plan;
+  takeAction(this: this): void {
+    this.stateMachine.enter('action');
   }
 
-  applyAction({ postConditions }: Action): void {
-    for (const [name, value] of entries(postConditions)) {
+  becomeIdle(this: this): void {
+    this.stateMachine.enter('idle');
+  }
+
+  startMoving(this: this): void {
+    this.stateMachine.enter('moving');
+  }
+
+  applyAction({ after }: Action): void {
+    for (const [name, value] of entries(after)) {
       this.setState(name, value);
     }
   }
 
+  moveToTarget(this: this): boolean {
+    if (!this.target) return false;
+
+    const { x: spriteX, y: spriteY } = this.sprite;
+    const { x: targetX, y: targetY } = this.target;
+
+    const distance = distanceBetween(spriteX, spriteY, targetX, targetY);
+
+    const horizontal = distanceBetween(spriteX + 1, spriteY, targetX, targetY);
+    const changeX = horizontal < distance ? 1 : -1;
+
+    const vertical = distanceBetween(spriteX, spriteY + 1, targetX, targetY);
+    const changeY = vertical < distance ? 1 : -1;
+
+    this.sprite.x += changeX;
+    this.sprite.y += changeY;
+
+    const hasArrived = distance < 10;
+
+    if (hasArrived) {
+      this.target = null;
+    }
+
+    return hasArrived;
+  }
+
   setState(name: Predicate, value: boolean): void {
-    this.state[name] = value;
+    this.facts[name] = value;
   }
 
   is(name: Predicate, value: boolean): boolean {
-    return this.state[name] === value;
+    return this.facts[name] === value;
   }
 
   private isActionReady(action: Action) {
@@ -93,5 +135,15 @@ export class Agent {
   // get all actions with cleared preconditions
   getUsableActions() {
     return this.actions.filter(this.isActionReady);
+  }
+
+  private forgetPreviousPlan(this: this): void {
+    this.currentPlan.length = 0;
+  }
+
+  plan(this: this): void {
+    this.forgetPreviousPlan();
+
+    this.planner.devisePlan(this);
   }
 }

@@ -3,7 +3,7 @@ import type { Agent } from '../ai/Agent';
 import type { State } from '../typings/State';
 
 export class ActionState implements State {
-  private readonly entity: Agent;
+  private readonly agent: Agent;
 
   private isWaiting = false;
 
@@ -11,20 +11,20 @@ export class ActionState implements State {
 
   private isTimeoutSet = false;
 
-  constructor(entity: Agent) {
-    this.entity = entity;
+  constructor(agent: Agent) {
+    this.agent = agent;
   }
 
   enter(this: this): void {
-    console.debug(`${this.entity.name} enters ${this.constructor.name}`);
+    console.debug(`${this.agent.name}: action`);
   }
 
   leave(this: this): void {
-    console.debug(`${this.entity.name} leaves ${this.constructor.name}`);
+    // console.debug(`${this.agent.name} -> stop action`);
   }
 
   update(this: this): void {
-    const action = this.isWaiting ? null : this.entity.currentPlan.shift() ?? null;
+    const action = this.isWaiting ? null : this.agent.currentPlan.shift() ?? null;
 
     if (!(action || this.lastAction)) return;
 
@@ -48,15 +48,13 @@ export class ActionState implements State {
         window.clearTimeout(t2);
 
         safeAction.execute(); // execute action, might break tools or something like this
-        this.entity.applyAction(safeAction);
+        this.agent.applyAction(safeAction);
 
         this.isWaiting = false;
         this.lastAction = null;
         this.isTimeoutSet = false;
 
-        const nextState = this.entity.currentPlan.length ? 'moving' : 'idle';
-
-        this.entity.stateMachine.enter(nextState);
+        this.agent.becomeIdle();
       }, 500 * cost); // 1 cost = 0.5s
     });
   }

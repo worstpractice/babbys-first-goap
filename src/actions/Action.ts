@@ -1,21 +1,21 @@
 import type { Agent } from '../ai/Agent';
 import type { ActionName } from '../typings/ActionName';
-import type { Predicate } from '../typings/Predicate';
-import type { Position } from '../typings/Position';
 import type { Facts } from '../typings/Facts';
+import type { Position } from '../typings/Position';
 import type { ResourceName } from '../typings/ResourceName';
+import { toPredicate } from '../utils/toPredicate';
 
 export class Action {
   private readonly name: string;
 
   protected readonly agent: Agent;
 
-  readonly postConditions: Facts = {
+  readonly before: Facts = {
     has_ore: false,
     has_pickaxe: false,
   };
 
-  readonly preConditions: Facts = {
+  readonly after: Facts = {
     has_ore: false,
     has_pickaxe: false,
   };
@@ -31,41 +31,35 @@ export class Action {
     this.agent = agent;
   }
 
-  protected gains<T extends ResourceName>(name: T): this {
-    const predicate: Predicate<T> = `has_${name}` as const;
-
-    this.from(predicate, false);
-    this.to(predicate, true);
-
-    return this;
+  protected retrieves<T extends ResourceName>(resource: T): void {
+    this.cannotHave(resource);
+    this.gains(resource);
   }
 
-  protected loses<T extends ResourceName>(name: T): this {
-    const predicate: Predicate<T> = `has_${name}` as const;
-
-    this.from(predicate, true);
-    this.to(predicate, false);
-
-    return this;
+  protected delivers<T extends ResourceName>(resource: T): void {
+    this.mustHave(resource);
+    this.loses(resource);
   }
 
-  protected exchanges<T extends ResourceName, U extends ResourceName>(payment: T, purchase: U): this {
-    this.loses(payment);
-    this.gains(purchase);
-
-    return this;
+  protected exchanges<T extends ResourceName, U extends ResourceName>(resource: T, desiredResource: U): void {
+    this.delivers(resource);
+    this.retrieves(desiredResource);
   }
 
-  protected from(this: this, name: Predicate, value: boolean): this {
-    this.preConditions[name] = value;
-
-    return this;
+  protected mustHave<T extends ResourceName>(this: this, resource: T): void {
+    this.before[toPredicate(resource)] = true;
   }
 
-  protected to(this: this, name: Predicate, value: boolean): this {
-    this.postConditions[name] = value;
+  protected cannotHave<T extends ResourceName>(this: this, resource: T): void {
+    this.before[toPredicate(resource)] = false;
+  }
 
-    return this;
+  protected gains<T extends ResourceName>(this: this, resource: T): void {
+    this.after[toPredicate(resource)] = true;
+  }
+
+  protected loses<T extends ResourceName>(this: this, resource: T): void {
+    this.after[toPredicate(resource)] = false;
   }
 
   execute(this: this): void {

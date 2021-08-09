@@ -8,9 +8,7 @@ export class DeliverPickaxe extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 1, position, agent);
 
-    this.from('has_pickaxe', true);
-
-    this.to('has_pickaxe', false);
+    this.delivers('pickaxe');
   }
 
   execute(this: this): void {

@@ -47,8 +47,9 @@ export class Agent {
   target: Position | null = null;
 
   constructor({ derivedActions, initialGoal, initialState, name, planner, stateMachine, sprite }: Props) {
-    this.goal = initialGoal;
+    this.actions = derivedActions.map(this.toAction) as readonly Action[];
     this.facts = initialState;
+    this.goal = initialGoal;
     this.name = name;
     this.planner = planner;
     this.stateMachine = stateMachine;
@@ -56,21 +57,16 @@ export class Agent {
 
     this.sprite.setDepth(1337);
 
-    ///////////////////////////////////////////////////////////////
-    // * Init Actions *
-    ///////////////////////////////////////////////////////////////
-    this.actions = derivedActions.map(([name, DerivedAction, position]) => {
-      return new DerivedAction(name, position, this);
-    }) as readonly Action[];
-
-    ///////////////////////////////////////////////////////////////
-
     this.stateMachine.add('idle', new IdleState(this));
     this.stateMachine.add('moving', new MovingState(this));
     this.stateMachine.add('action', new ActionState(this));
 
-    this.stateMachine.enter('idle');
+    this.becomeIdle();
   }
+
+  private readonly toAction = ([name, DerivedAction, position]: readonly [ActionName, DerivedAction, Position]): Action => {
+    return new DerivedAction(name, position, this);
+  };
 
   update(this: this): void {
     this.stateMachine.update();

@@ -1,5 +1,5 @@
 import type { Action } from '../actions/Action';
-import type { Fact } from '../typings/Fact';
+import type { Goal } from '../typings/Fact';
 import type { Facts } from '../typings/Facts';
 import type { GraphNode } from '../typings/GraphNode';
 import { byCost } from '../utils/byCost';
@@ -8,12 +8,12 @@ import { exclude } from '../utils/exclude';
 import type { Agent } from './Agent';
 
 export class Planner {
-  plan(this: this, agent: Agent, goal: Fact): readonly Action[] {
+  plan(this: this, agent: Agent, goal: Goal): readonly Action[] {
     const root: GraphNode = {
       action: null,
       cost: 0,
+      facts: agent.state,
       parent: null,
-      state: agent.state,
     } as const;
 
     const leaves: GraphNode[] = [];
@@ -48,20 +48,18 @@ export class Planner {
   }
 
   /** NOTE: gross side-effect. Mutates `leaves`. */
-  private buildGraph(this: this, parent: GraphNode, leaves: GraphNode[], actions: readonly Action[], goal: Fact): void {
+  private buildGraph(this: this, parent: GraphNode, leaves: GraphNode[], actions: readonly Action[], goal: Goal): void {
     for (const action of actions) {
-      if (!this.arePreconditionsMet(parent.state, action.preconditions)) continue;
-
-      const currentFacts: Facts = { ...parent.state, ...action.effects } as const;
+      if (!this.arePreconditionsMet(parent.facts, action.preConditions)) continue;
 
       const node: GraphNode = {
         action,
         cost: parent.cost + action.cost,
+        facts: { ...parent.facts, ...action.postConditions },
         parent,
-        state: currentFacts,
       } as const;
 
-      const isGoalMet = currentFacts[goal.name] === goal.value;
+      const isGoalMet = node.facts[goal.name] === goal.value;
 
       if (isGoalMet) {
         leaves.push(node);
@@ -74,9 +72,9 @@ export class Planner {
     }
   }
 
-  private arePreconditionsMet(this: this, state: Facts, preconditions: Facts): boolean {
+  private arePreconditionsMet(this: this, facts: Facts, preconditions: Facts): boolean {
     for (const [name, value] of entries(preconditions)) {
-      if (!state[name] === value) return false;
+      if (!facts[name] === value) return false;
     }
 
     return true;

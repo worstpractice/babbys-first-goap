@@ -8,9 +8,9 @@ export class RetrievePickaxe extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 1, position, agent);
 
-    this.addPrecondition('has_ore', false);
-    this.addPrecondition('has_pickaxe', false);
-    this.addEffect('has_pickaxe', true);
+    this.from('has_ore', false);
+    this.from('has_pickaxe', false);
+    this.to('has_pickaxe', true);
   }
 
   canExecute(this: this): boolean {

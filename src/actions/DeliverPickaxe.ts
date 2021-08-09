@@ -8,8 +8,9 @@ export class DeliverPickaxe extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 1, position, agent);
 
-    this.addPrecondition('has_pickaxe', true);
-    this.addEffect('has_pickaxe', false);
+    this.from('has_pickaxe', true);
+
+    this.to('has_pickaxe', false);
   }
 
   execute(this: this): void {

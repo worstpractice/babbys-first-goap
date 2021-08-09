@@ -8,8 +8,9 @@ export class DeliverOre extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 1, position, agent);
 
-    this.addPrecondition('has_ore', true);
-    this.addEffect('has_ore', false);
+    this.from('has_ore', true);
+
+    this.to('has_ore', false);
   }
 
   execute(this: this): void {

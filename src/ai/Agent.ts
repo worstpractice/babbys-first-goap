@@ -6,9 +6,9 @@ import { MovingState } from '../states/MovingState';
 import { StateMachine } from '../states/StateMachine';
 import type { ActionName } from '../typings/ActionName';
 import type { DerivedAction } from '../typings/DerivedAction';
-import type { Fact } from '../typings/Fact';
+import type { Goal } from '../typings/Fact';
 import type { Facts } from '../typings/Facts';
-import type { FactName } from '../typings/GoalName';
+import type { Predicate } from '../typings/Predicate';
 import type { Position } from '../typings/Position';
 import { entries } from '../utils/entries';
 import { Planner } from './Planner';
@@ -16,7 +16,7 @@ import { Planner } from './Planner';
 type Props = {
   readonly name: string;
   readonly sprite: GameObjects.Sprite;
-  readonly initialGoal: Fact;
+  readonly initialGoal: Goal;
   readonly initialState: Facts;
   readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
 };
@@ -26,13 +26,16 @@ export class Agent {
 
   currentPlan: Action[] = [];
 
-  private readonly goal: Fact;
+  private readonly goal: Goal;
 
   readonly name: string;
 
   readonly sprite: GameObjects.Sprite;
 
-  readonly state: Facts = {};
+  readonly state: Facts = {
+    has_ore: false,
+    has_pickaxe: false,
+  };
 
   readonly stateMachine = new StateMachine();
 
@@ -69,26 +72,26 @@ export class Agent {
     return plan;
   }
 
-  applyAction({ effects }: Action): void {
-    for (const [name, value] of entries(effects)) {
-      this.setState(name, Boolean(value));
+  applyAction({ postConditions }: Action): void {
+    for (const [name, value] of entries(postConditions)) {
+      this.setState(name, value);
     }
   }
 
-  setState(name: FactName, value: boolean): void {
+  setState(name: Predicate, value: boolean): void {
     this.state[name] = value;
   }
 
-  is(name: FactName, value: boolean): boolean {
+  is(name: Predicate, value: boolean): boolean {
     return this.state[name] === value;
   }
 
-  static #isActionReady(action: Action) {
+  private isActionReady(action: Action) {
     return action.canExecute();
   }
 
   // get all actions with cleared preconditions
   getUsableActions() {
-    return this.actions.filter(Agent.#isActionReady);
+    return this.actions.filter(this.isActionReady);
   }
 }

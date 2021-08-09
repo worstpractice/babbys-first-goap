@@ -8,7 +8,7 @@ export class CraftPickaxe extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 4, position, agent);
 
-    // this.exchanges('ore', 'pickaxe');
+    this.exchanges('ore', 'pickaxe');
 
     // this.gains('pickaxe')
     // this.loses('ore')

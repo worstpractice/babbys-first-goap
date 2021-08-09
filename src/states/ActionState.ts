@@ -1,8 +1,8 @@
 import type { Action } from '../actions/Action';
 import type { Agent } from '../ai/Agent';
-import type { BaseState } from '../typings/State';
+import type { State } from '../typings/State';
 
-export class ActionState implements BaseState {
+export class ActionState implements State {
   private readonly entity: Agent;
 
   private isWaiting = false;

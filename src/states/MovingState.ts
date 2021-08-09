@@ -1,8 +1,8 @@
 import type { Agent } from '../ai/Agent';
 import { distanceBetween } from '../utils/distanceBetween';
-import type { BaseState } from '../typings/State';
+import type { State } from '../typings/State';
 
-export class MovingState implements BaseState {
+export class MovingState implements State {
   private readonly entity: Agent;
 
   constructor(entity: Agent) {

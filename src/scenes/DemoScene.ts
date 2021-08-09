@@ -9,7 +9,7 @@ import { storedQuantities } from '../data/storedQuantities';
 import { startingActions } from '../starting/startingActions';
 import { startingGoals } from '../starting/startingGoals';
 import { startingPositions } from '../starting/startingPositions';
-import { startingStates } from '../starting/startingStates';
+import { startingFacts } from '../starting/startingFacts';
 import type { AgentName } from '../typings/AgentName';
 import type { SpriteName } from '../typings/SpriteName';
 import type { Table } from '../typings/Table';
@@ -80,14 +80,13 @@ export class DemoScene extends Phaser.Scene {
 
   #spawnAgents(this: this): void {
     for (const name of AGENT_NAMES) {
-      const sprite = this.sprites[name];
-      sprite.setDepth(1337);
-      const position = startingPositions[name];
-      const goal = startingGoals[name];
-      const state = startingStates[name];
-      const actions = startingActions[name];
-
-      this.agents[name] = new Agent(name, sprite, position, goal, state, actions);
+      this.agents[name] = new Agent({
+        derivedActions: startingActions[name],
+        initialGoal: startingGoals[name],
+        initialState: startingFacts[name],
+        name,
+        sprite: this.sprites[name],
+      });
     }
   }
 

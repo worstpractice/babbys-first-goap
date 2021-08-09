@@ -9,11 +9,6 @@ export const startingPositions = {
     y: 300,
   },
 
-  ore_deposit: {
-    x: 100,
-    y: 600,
-  },
-
   miner: {
     x: 300,
     y: 300,
@@ -21,6 +16,11 @@ export const startingPositions = {
 
   ore: {
     x: 800,
+    y: 600,
+  },
+
+  ore_deposit: {
+    x: 100,
     y: 600,
   },
 

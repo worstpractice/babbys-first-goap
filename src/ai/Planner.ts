@@ -1,30 +1,33 @@
-import type { Agent } from './Agent';
-import type { Fact } from '../typings/Fact';
-import type { FactName } from '../typings/GoalName';
-import type { State } from '../typings/State';
-import { byCost } from '../utils/byCost';
-import { exclude } from '../utils/exclude';
 import type { Action } from '../actions/Action';
+import type { Fact } from '../typings/Fact';
+import type { Facts } from '../typings/Facts';
+import { byCost } from '../utils/byCost';
+import { entries } from '../utils/entries';
+import { exclude } from '../utils/exclude';
+import { fromEntries } from '../utils/fromEntries';
+import type { Agent } from './Agent';
 import { GraphNode } from './GraphNode';
 
 export class Planner {
   plan(this: this, agent: Agent, goal: Fact): readonly Action[] {
     const root = new GraphNode(null, null, 0, agent.state);
 
-    const mutableLeaves: GraphNode[] = [];
+    const leaves: GraphNode[] = [];
 
-    const leaves = this.#buildGraph(root, mutableLeaves, agent.actions, goal).sort(byCost) as readonly GraphNode[];
+    this.buildGraph(root, leaves, agent.actions, goal);
+
+    leaves.sort(byCost);
 
     if (!leaves.length) throw new RangeError('no leaves!');
 
-    const plan = this.#traverseGraphFrom(leaves);
+    const plan = this.traverseGraphFrom(leaves);
 
     if (!plan.length) throw new RangeError('no plan!');
 
     return plan;
   }
 
-  #traverseGraphFrom(this: this, leaves: readonly GraphNode[]): readonly Action[] {
+  private traverseGraphFrom(this: this, leaves: readonly GraphNode[]): readonly Action[] {
     const cheapest: GraphNode | null = leaves[0] ?? null;
 
     const plan: Action[] = [];
@@ -40,11 +43,12 @@ export class Planner {
     return plan;
   }
 
-  #buildGraph(this: this, parent: GraphNode, leaves: GraphNode[], actions: readonly Action[], goal: Fact): GraphNode[] {
+  /** NOTE: gross side-effect. Mutates `leaves`. */
+  private buildGraph(this: this, parent: GraphNode, leaves: GraphNode[], actions: readonly Action[], goal: Fact): void {
     for (const action of actions) {
       if (!this.arePreconditionsMet(parent.state, action.preconditions)) continue;
 
-      const currentState = this.#applyState(parent.state, action.effects);
+      const currentState = this.applyState(parent.state, action.effects);
 
       const node = new GraphNode(parent, action, parent.cost + action.cost, currentState);
 
@@ -57,23 +61,19 @@ export class Planner {
 
       const remainingActions = actions.filter(exclude(action));
 
-      this.#buildGraph(node, leaves, remainingActions, goal);
+      this.buildGraph(node, leaves, remainingActions, goal);
     }
-
-    return leaves;
   }
 
-  arePreconditionsMet(this: this, state: State, preconditions: State): boolean {
-    const entries = Object.entries(preconditions) as readonly (readonly [FactName, boolean])[];
-
-    for (const [name, value] of entries) {
+  private arePreconditionsMet(this: this, state: Facts, preconditions: Facts): boolean {
+    for (const [name, value] of entries(preconditions)) {
       if (!state[name] === value) return false;
     }
 
     return true;
   }
 
-  #applyState(this: this, old: State, newState: State): State {
-    return Object.fromEntries([...Object.entries(old), ...Object.entries(newState)] as const);
+  private applyState(this: this, old: Facts, newState: Facts): Facts {
+    return fromEntries([...entries(old), ...entries(newState)] as const);
   }
 }

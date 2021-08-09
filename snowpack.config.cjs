@@ -1,25 +1,20 @@
-"use strict";
+'use strict';
 
 /** @type {import("snowpack").SnowpackUserConfig} */
 module.exports = {
   mount: {
     assets: {
-      url: "/assets",
+      url: '/assets',
     },
     public: {
-      url: "/",
+      url: '/',
     },
     src: {
-      url: "/dist",
+      url: '/dist',
     },
-  },
-  optimize: {
-    minify: true,
-    preload: true,
-    treeshake: true,
   },
   plugins: [
     //
-    "@snowpack/plugin-typescript",
+    '@snowpack/plugin-typescript',
   ],
 };

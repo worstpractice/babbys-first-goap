@@ -2,16 +2,16 @@ import type { Agent } from '../ai/Agent';
 import type { ActionName } from "../typings/ActionName";
 import type { FactName } from '../typings/GoalName';
 import type { Position } from '../typings/Position';
-import type { State } from '../typings/State';
+import type { Facts } from '../typings/Facts';
 
 export class Action {
   readonly name: string;
 
-  agent: Agent;
+  readonly agent: Agent;
 
-  readonly effects: State = {};
+  readonly effects: Facts = {};
 
-  readonly preconditions: State = {};
+  readonly preconditions: Facts = {};
 
   readonly cost: number;
 

@@ -7,18 +7,17 @@ import { Action } from './Action';
 export class CraftPickaxe extends Action {
   constructor(name: ActionName, position: Position, agent: Agent) {
     super(name, 4, position, agent);
-
     this.addPrecondition('has_ore', true);
     this.addPrecondition('has_pickaxe', false);
     this.addEffect('has_ore', false);
     this.addEffect('has_pickaxe', true);
   }
 
-  canExecute() {
-    return Boolean(storedQuantities.ore);
+  canExecute(this: this): boolean {
+    return Boolean(this.agent.state.has_ore);
   }
 
-  execute() {
+  execute(this: this): void {
     storedQuantities.ore--;
   }
 }

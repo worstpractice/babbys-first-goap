@@ -1,28 +1,29 @@
 import type { Action } from '../actions/Action';
 import type { Agent } from '../ai/Agent';
+import type { BaseState } from '../typings/State';
 
-export class ActionState {
-  entity: Agent;
+export class ActionState implements BaseState {
+  private readonly entity: Agent;
 
-  isWaiting = false;
+  private isWaiting = false;
 
-  lastAction: Action | null = null;
+  private lastAction: Action | null = null;
 
-  isTimeoutSet = false;
+  private isTimeoutSet = false;
 
   constructor(entity: Agent) {
     this.entity = entity;
   }
 
-  enter() {
+  enter(this: this): void {
     console.debug(`${this.entity.name} enters ${this.constructor.name}`);
   }
 
-  leave() {
+  leave(this: this): void {
     console.debug(`${this.entity.name} leaves ${this.constructor.name}`);
   }
 
-  update() {
+  update(this: this): void {
     const action = this.isWaiting ? null : this.entity.currentPlan.shift() ?? null;
 
     if (!(action || this.lastAction)) return;
@@ -39,20 +40,24 @@ export class ActionState {
     if (this.isTimeoutSet) return;
 
     this.isTimeoutSet = true;
+
     // wait, apply and move to the next one (if there is one)
-    window.setTimeout(() => {
-      safeAction.execute(); // execute action, might break tools or something like this
-      this.entity.applyAction(safeAction);
+    const t1 = window.setTimeout(() => {
+      window.clearTimeout(t1);
+      const t2 = window.setTimeout(() => {
+        window.clearTimeout(t2);
 
-      this.isWaiting = false;
-      this.lastAction = null;
-      this.isTimeoutSet = false;
+        safeAction.execute(); // execute action, might break tools or something like this
+        this.entity.applyAction(safeAction);
 
-      if (this.entity.currentPlan.length) {
-        this.entity.stateMachine.enter('moving');
-      } else {
-        this.entity.stateMachine.enter('idle');
-      }
-    }, 500 * cost); // 1 cost = 0.5s
+        this.isWaiting = false;
+        this.lastAction = null;
+        this.isTimeoutSet = false;
+
+        const nextState = this.entity.currentPlan.length ? 'moving' : 'idle';
+
+        this.entity.stateMachine.enter(nextState);
+      }, 500 * cost); // 1 cost = 0.5s
+    });
   }
 }

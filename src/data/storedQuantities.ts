@@ -1,4 +1,4 @@
 export const storedQuantities = {
-  ore: 4,
-  pickaxe: 2,
+  ore: 0,
+  pickaxe: 0,
 };

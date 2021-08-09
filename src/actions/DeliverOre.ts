@@ -12,7 +12,7 @@ export class DeliverOre extends Action {
     this.addEffect('has_ore', false);
   }
 
-  execute() {
+  execute(this: this): void {
     storedQuantities.ore++;
   }
 }

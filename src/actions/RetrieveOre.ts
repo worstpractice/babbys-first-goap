@@ -13,11 +13,11 @@ export class RetrieveOre extends Action {
     this.addEffect('has_ore', true);
   }
 
-  canExecute() {
+  canExecute(this: this): boolean {
     return Boolean(storedQuantities.ore);
   }
 
-  execute() {
+  execute(this: this): void {
     storedQuantities.ore--;
   }
 }

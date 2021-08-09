@@ -12,7 +12,7 @@ export class DeliverPickaxe extends Action {
     this.addEffect('has_pickaxe', false);
   }
 
-  execute() {
+  execute(this: this): void {
     storedQuantities.pickaxe++;
   }
 }

@@ -13,11 +13,11 @@ export class RetrievePickaxe extends Action {
     this.addEffect('has_pickaxe', true);
   }
 
-  canExecute() {
+  canExecute(this: this): boolean {
     return Boolean(storedQuantities.pickaxe);
   }
 
-  execute() {
+  execute(this: this): void {
     storedQuantities.pickaxe--;
   }
 }

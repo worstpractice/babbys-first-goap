@@ -1,4 +1,4 @@
-import type { State } from '../typings/State';
+import type { Facts } from '../typings/Facts';
 import type { Action } from '../actions/Action';
 
 export class GraphNode {
@@ -8,9 +8,9 @@ export class GraphNode {
 
   readonly parent: GraphNode | null;
 
-  readonly state: State;
+  readonly state: Facts;
 
-  constructor(parent: GraphNode | null, action: Action | null, cost: number, state: State) {
+  constructor(parent: GraphNode | null, action: Action | null, cost: number, state: Facts) {
     this.action = action;
     this.cost = cost;
     this.parent = parent;

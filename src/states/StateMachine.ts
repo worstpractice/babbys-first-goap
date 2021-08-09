@@ -1,13 +1,11 @@
-import type { State } from '../typings/State';
+import type { BaseState } from '../typings/State';
 import type { StateName } from '../typings/StateName';
 import type { States } from '../typings/States';
 
-// Every object that offers the following methods can be used as a State:
-// enter, leave, update
 export class StateMachine {
-  states: { [key in StateName]?: States[key] } = {};
+  private readonly states: { [key in StateName]?: BaseState } = {};
 
-  state: States[StateName] | null = null;
+  private state: BaseState | null = null;
 
   add<T extends StateName>(this: this, name: T, state: States[T]): void {
     this.states[name] = state;
@@ -16,9 +14,7 @@ export class StateMachine {
   enter<T extends StateName>(this: this, name: T): void {
     if (this.state) this.state.leave();
 
-    const next = this.states[name];
-
-    if (!next) throw new ReferenceError('missing next state');
+    const next = this.states[name] as BaseState;
 
     this.state = next;
     this.state.enter();

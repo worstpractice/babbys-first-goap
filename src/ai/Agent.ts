@@ -7,48 +7,47 @@ import { StateMachine } from '../states/StateMachine';
 import type { ActionName } from '../typings/ActionName';
 import type { DerivedAction } from '../typings/DerivedAction';
 import type { Fact } from '../typings/Fact';
+import type { Facts } from '../typings/Facts';
 import type { FactName } from '../typings/GoalName';
 import type { Position } from '../typings/Position';
-import type { State } from '../typings/State';
+import { entries } from '../utils/entries';
 import { Planner } from './Planner';
+
+type Props = {
+  readonly name: string;
+  readonly sprite: GameObjects.Sprite;
+  readonly initialGoal: Fact;
+  readonly initialState: Facts;
+  readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
+};
 
 export class Agent {
   readonly actions: Action[] = [];
 
   currentPlan: Action[] = [];
 
-  readonly currentActions: Action[] = [];
-
-  readonly goal: Fact;
-
-  readonly initialPosition: Position;
+  private readonly goal: Fact;
 
   readonly name: string;
 
   readonly sprite: GameObjects.Sprite;
 
-  readonly state: State = {};
+  readonly state: Facts = {};
 
   readonly stateMachine = new StateMachine();
 
   target: Position | null = null;
 
-  constructor(
-    name: string,
-    sprite: GameObjects.Sprite,
-    initialPosition: Position,
-    initialGoal: Fact,
-    initialState: State,
-    derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[],
-  ) {
+  constructor({ derivedActions, initialGoal, initialState, name, sprite }: Props) {
     this.name = name;
     this.sprite = sprite;
-    this.initialPosition = initialPosition;
     this.goal = initialGoal;
     this.state = initialState;
 
+    this.sprite.setDepth(1337);
+
     for (const [name, DerivedAction, position] of derivedActions) {
-      this.addAction(new DerivedAction(name, position, this));
+      this.actions.push(new DerivedAction(name, position, this));
     }
 
     this.stateMachine.add('idle', new IdleState(this));
@@ -70,16 +69,8 @@ export class Agent {
     return plan;
   }
 
-  addAction(this: this, action: Action): void {
-    action.agent = this;
-
-    this.actions.push(action);
-  }
-
   applyAction({ effects }: Action): void {
-    const entries = Object.entries(effects) as readonly (readonly [FactName, boolean])[];
-
-    for (const [name, value] of entries) {
+    for (const [name, value] of entries(effects)) {
       this.setState(name, Boolean(value));
     }
   }

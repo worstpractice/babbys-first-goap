@@ -15,7 +15,7 @@ export class UsePickaxe extends Action {
     this.addEffect('has_ore', true);
   }
 
-  execute() {
+  execute(this: this): void {
     this.#mineCounter++;
 
     if (this.#mineCounter < 4) return;

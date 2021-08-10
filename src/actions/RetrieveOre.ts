@@ -16,6 +16,8 @@ export class RetrieveOre extends Action {
   }
 
   execute(this: this): void {
+    console.count(this.constructor.name);
+
     storedQuantities.ore--;
   }
 }

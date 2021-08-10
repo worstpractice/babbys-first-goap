@@ -12,6 +12,8 @@ export class DeliverPickaxe extends Action {
   }
 
   execute(this: this): void {
+    console.count(this.constructor.name);
+
     storedQuantities.pickaxe++;
   }
 }

@@ -1,7 +1,7 @@
 import type { Agent } from '../ai/Agent';
-import type { State } from '../typings/State';
+import type { FiniteState } from '../typings/FiniteState';
 
-export class MovingState implements State {
+export class MovingState implements FiniteState {
   private readonly agent: Agent;
 
   constructor(entity: Agent) {
@@ -11,7 +11,7 @@ export class MovingState implements State {
   enter(this: this): void {
     console.debug(`${this.agent.name}: moving`);
 
-    this.agent.target = this.agent.currentPlan[0]?.position ?? null;
+    this.agent.updateTarget();
   }
 
   leave(this: this): void {

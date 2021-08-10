@@ -1,58 +1,54 @@
 import type { GameObjects } from 'phaser';
 import type { Action } from '../actions/Action';
 import { ActionState } from '../states/ActionState';
+import type { FiniteStateMachine } from '../states/FiniteStateMachine';
 import { IdleState } from '../states/IdleState';
 import { MovingState } from '../states/MovingState';
-import type { StateMachine } from '../states/StateMachine';
 import type { ActionName } from '../typings/ActionName';
+import type { AgentName } from '../typings/AgentName';
 import type { DerivedAction } from '../typings/DerivedAction';
 import type { Goal } from '../typings/Fact';
-import type { Facts } from '../typings/Facts';
+import type { Mutable } from '../typings/Mutable';
 import type { Position } from '../typings/Position';
 import type { Predicate } from '../typings/Predicate';
-import { distanceBetween } from '../utils/distanceBetween';
-import { entries } from '../utils/entries';
-import type { Planner } from './Planner';
+import type { Facts } from '../typings/tables/Facts';
+import { distanceBetween } from '../utils/shims/distanceBetween';
+import { makePlan } from './makePlan';
 
 type Props = {
   readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
   readonly image: GameObjects.Image;
   readonly initialGoal: Goal;
   readonly initialState: Facts;
-  readonly name: string;
-  readonly planner: Planner;
-  readonly stateMachine: StateMachine;
+  readonly name: AgentName;
+  readonly stateMachine: FiniteStateMachine;
 };
 
 export class Agent {
-  readonly actions: readonly Action[];
+  readonly availableActions: readonly Action[];
 
-  readonly currentPlan: Action[] = [];
+  currentAction: Action | null = null;
 
-  readonly goal: Goal;
+  currentFacts: Facts;
+
+  currentGoal: Goal;
+
+  currentPlan: Action[] = [];
+
+  currentTarget: Position | null = null;
 
   readonly image: GameObjects.Image;
 
-  readonly name: string;
+  readonly name: AgentName;
 
-  readonly planner: Planner;
+  readonly stateMachine: FiniteStateMachine;
 
-  readonly facts: Facts = {
-    has_ore: false,
-    has_pickaxe: false,
-  };
-
-  readonly stateMachine: StateMachine;
-
-  target: Position | null = null;
-
-  constructor({ derivedActions, image, initialGoal, initialState, name, planner, stateMachine }: Props) {
-    this.actions = derivedActions.map(this.toAction) as readonly Action[];
+  constructor({ derivedActions, image, initialGoal, initialState, name, stateMachine }: Props) {
+    this.availableActions = derivedActions.map(this.toAction) as readonly Action[];
     this.image = image;
-    this.facts = initialState;
-    this.goal = initialGoal;
+    this.currentFacts = initialState;
+    this.currentGoal = initialGoal;
     this.name = name;
-    this.planner = planner;
     this.stateMachine = stateMachine;
 
     this.stateMachine.add('idle', new IdleState(this));
@@ -83,16 +79,28 @@ export class Agent {
   }
 
   applyAction({ after }: Action): void {
-    for (const [name, value] of entries(after)) {
+    for (const [name, value] of Object.entries(after)) {
       this.setState(name, value);
     }
   }
 
+  isOutOfIdeas(this: this): boolean {
+    return !this.currentPlan.length;
+  }
+
+  updateTarget(this: this): void {
+    this.currentTarget = this.currentPlan.at(-1)?.position ?? null;
+  }
+
+  proceedWithPlan(this: this): Action | null {
+    return this.currentPlan.pop() ?? null;
+  }
+
   moveToTarget(this: this): boolean {
-    if (!this.target) return false;
+    if (!this.currentTarget) return false;
 
     const { x: imageX, y: imageY } = this.image;
-    const { x: targetX, y: targetY } = this.target;
+    const { x: targetX, y: targetY } = this.currentTarget;
 
     const distance = distanceBetween(imageX, imageY, targetX, targetY);
 
@@ -108,18 +116,18 @@ export class Agent {
     const hasArrived = distance < 10;
 
     if (hasArrived) {
-      this.target = null;
+      this.currentTarget = null;
     }
 
     return hasArrived;
   }
 
   setState(name: Predicate, value: boolean): void {
-    this.facts[name] = value;
+    this.currentFacts[name] = value;
   }
 
   is(name: Predicate, value: boolean): boolean {
-    return this.facts[name] === value;
+    return this.currentFacts[name] === value;
   }
 
   private isActionReady(action: Action) {
@@ -128,16 +136,10 @@ export class Agent {
 
   // get all actions with cleared preconditions
   getUsableActions() {
-    return this.actions.filter(this.isActionReady);
-  }
-
-  private forgetPreviousPlan(this: this): void {
-    this.currentPlan.length = 0;
+    return this.availableActions.filter(this.isActionReady);
   }
 
   plan(this: this): void {
-    this.forgetPreviousPlan();
-
-    this.planner.devisePlan(this);
+    this.currentPlan = makePlan(this.availableActions, this.currentFacts, this.currentGoal) as Mutable<ReturnType<typeof makePlan>>;
   }
 }

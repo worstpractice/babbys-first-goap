@@ -1,8 +1,8 @@
 import type { Action } from '../actions/Action';
 import type { Agent } from '../ai/Agent';
-import type { State } from '../typings/State';
+import type { FiniteState } from '../typings/FiniteState';
 
-export class ActionState implements State {
+export class ActionState implements FiniteState {
   private readonly agent: Agent;
 
   private isWaiting = false;
@@ -24,31 +24,35 @@ export class ActionState implements State {
   }
 
   update(this: this): void {
-    const action = this.isWaiting ? null : this.agent.currentPlan.shift() ?? null;
+    if (this.isWaiting) return;
 
-    if (!(action || this.lastAction)) return;
+    const maybeAction = this.agent.proceedWithPlan();
 
-    this.isWaiting = true;
-    this.lastAction = action ?? this.lastAction;
+    if (!(maybeAction || this.lastAction)) return;
 
-    const safeAction = this.lastAction as Action;
+    this.lastAction = maybeAction ?? this.lastAction;
 
-    if (!safeAction?.canExecute()) return;
+    const action = this.lastAction as Action;
 
-    const cost = safeAction.cost;
+    if (!action.canExecute()) return;
 
     if (this.isTimeoutSet) return;
 
+    this.isWaiting = true;
+
     this.isTimeoutSet = true;
 
-    // wait, apply and move to the next one (if there is one)
-    const t1 = window.setTimeout(() => {
-      window.clearTimeout(t1);
-      const t2 = window.setTimeout(() => {
-        window.clearTimeout(t2);
+    const cost = action.cost;
 
-        safeAction.execute(); // execute action, might break tools or something like this
-        this.agent.applyAction(safeAction);
+    // wait, apply and move to the next one (if there is one)
+    window.setTimeout(() => {
+      console.log('wont be waiting soon');
+
+      window.setTimeout(() => {
+        action.execute(); // execute action, might break tools or something like this
+        this.agent.applyAction(action);
+
+        console.log('is no longer waiting');
 
         this.isWaiting = false;
         this.lastAction = null;

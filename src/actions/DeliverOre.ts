@@ -12,6 +12,8 @@ export class DeliverOre extends Action {
   }
 
   execute(this: this): void {
+    console.count(this.constructor.name);
+
     storedQuantities.ore++;
   }
 }

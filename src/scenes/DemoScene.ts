@@ -1,7 +1,6 @@
 import type { GameObjects } from 'phaser';
 import Phaser from 'phaser';
 import { Agent } from '../ai/Agent';
-import { Planner } from '../ai/Planner';
 import { AGENT_NAMES } from '../constants/AGENT_NAMES';
 import { IMAGE_NAMES } from '../constants/IMAGE_NAMES';
 import { KEY_PATH_PAIRS } from '../constants/KEY_PATH_PAIRS';
@@ -11,7 +10,7 @@ import { startingActions } from '../starting/startingActions';
 import { startingFacts } from '../starting/startingFacts';
 import { startingGoals } from '../starting/startingGoals';
 import { startingPositions } from '../starting/startingPositions';
-import { StateMachine } from '../states/StateMachine';
+import { FiniteStateMachine } from '../states/FiniteStateMachine';
 import type { AgentName } from '../typings/AgentName';
 import type { ImageName } from '../typings/ImageName';
 import type { Table } from '../typings/Table';
@@ -32,7 +31,7 @@ export class DemoScene extends Phaser.Scene {
   constructor() {
     super({
       active: true,
-      key: new.target.name.toLowerCase(),
+      key: 'demoscene',
       physics: {
         arcade: {
           debug: true,
@@ -114,8 +113,7 @@ export class DemoScene extends Phaser.Scene {
         initialGoal: startingGoals[name],
         initialState: startingFacts[name],
         name,
-        planner: new Planner(),
-        stateMachine: new StateMachine(),
+        stateMachine: new FiniteStateMachine(),
       });
     }
   }

@@ -4,23 +4,57 @@ import { ForgePickaxe } from '../actions/ForgePickaxe';
 import { MineOre } from '../actions/MineOre';
 import { RetrieveOre } from '../actions/RetrieveOre';
 import { RetrievePickaxe } from '../actions/RetrievePickaxe';
-import type { ActionName } from '../typings/ActionName';
-import type { DerivedAction } from '../typings/DerivedAction';
+import type { LazyAction } from '../typings/LazyAction';
 import type { Personal } from '../typings/Personal';
-import type { Position } from '../typings/Position';
 import { startingPositions } from './startingPositions';
 
-export const startingActions: Personal<readonly (readonly [ActionName, DerivedAction, Position])[]> = {
+export const startingActions: Personal<readonly LazyAction[]> = {
   blacksmith: [
     //
-    ['retrieve_ore', RetrieveOre, startingPositions.ore_deposit],
-    ['forge_pickaxe', ForgePickaxe, startingPositions.forge],
-    ['deliver_pickaxe', DeliverPickaxe, startingPositions.pickaxe_deposit],
+    [
+      DeliverPickaxe,
+      {
+        cost: 1,
+        position: startingPositions.pickaxe_deposit,
+      },
+    ],
+    [
+      ForgePickaxe,
+      {
+        cost: 4,
+        position: startingPositions.forge,
+      },
+    ],
+    [
+      RetrieveOre,
+      {
+        cost: 1,
+        position: startingPositions.ore_deposit,
+      },
+    ],
   ],
   miner: [
     //
-    ['mine_ore', MineOre, startingPositions.ore],
-    ['deliver_ore', DeliverOre, startingPositions.ore_deposit],
-    ['retrieve_pickaxe', RetrievePickaxe, startingPositions.pickaxe_deposit],
+    [
+      DeliverOre,
+      {
+        cost: 1,
+        position: startingPositions.ore_deposit,
+      },
+    ],
+    [
+      MineOre,
+      {
+        cost: 4,
+        position: startingPositions.ore,
+      },
+    ],
+    [
+      RetrievePickaxe,
+      {
+        cost: 1,
+        position: startingPositions.pickaxe_deposit,
+      },
+    ],
   ],
 } as const;

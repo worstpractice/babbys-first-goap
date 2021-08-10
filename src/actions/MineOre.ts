@@ -1,12 +1,10 @@
-import type { Agent } from '../ai/Agent';
-import type { ActionName } from '../typings/ActionName';
-import type { Position } from '../typings/Position';
 import { coinFlip } from '../utils/coinFlip';
+import type { ActionProps } from './Action';
 import { Action } from './Action';
 
 export class MineOre extends Action {
-  constructor(name: ActionName, position: Position, agent: Agent) {
-    super(name, 4, position, agent);
+  constructor(props: ActionProps) {
+    super(props);
 
     this.mustHave('pickaxe');
     this.retrieves('ore');

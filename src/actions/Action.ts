@@ -1,12 +1,20 @@
 import type { Agent } from '../ai/Agent';
-import type { ActionName } from '../typings/ActionName';
 import type { Position } from '../typings/Position';
 import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
 import { arePreconditionsMet } from '../utils/arePreconditionsMet';
 import { toPredicate } from '../utils/mapping/toPredicate';
+import { toSnakeCase } from '../utils/toSnakeCase';
+
+export type ActionProps = {
+  readonly agent: Agent;
+  readonly cost: number;
+  readonly position: Position;
+};
 
 export class Action {
+  readonly cost: number;
+
   private readonly name: string;
 
   protected readonly agent: Agent;
@@ -21,13 +29,11 @@ export class Action {
     has_pickaxe: false,
   };
 
-  readonly cost: number;
-
   readonly position: Position;
 
-  constructor(name: ActionName, cost: number, position: Position, agent: Agent) {
-    this.name = name;
+  constructor({ agent, cost, position }: ActionProps) {
     this.cost = cost;
+    this.name = toSnakeCase(new.target.name);
     this.position = position;
     this.agent = agent;
   }

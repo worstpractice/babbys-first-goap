@@ -3,26 +3,26 @@ import type { FiniteState } from '../typings/FiniteState';
 import type { FiniteStateName } from '../typings/FiniteStateName';
 import { Idling } from './Idling';
 import { Interacting } from './Interacting';
-import { MovingState } from './Moving';
+import { Moving } from './Moving';
 
 export class FiniteStateMachine {
   private readonly agent: Agent;
 
   private currentState: FiniteState;
 
-  private readonly states: { readonly [key in FiniteStateName]: FiniteState } = {
-    idling: new Idling(),
-    interacting: new Interacting(),
-    moving: new MovingState(),
-  };
+  private readonly idling: FiniteState = new Idling();
+
+  private readonly interacting: FiniteState = new Interacting();
+
+  private readonly moving: FiniteState = new Moving();
 
   constructor(agent: Agent) {
     this.agent = agent;
-    this.currentState = this.states.idling;
+    this.currentState = this.idling;
   }
 
-  transitionTo<T extends FiniteStateName>(this: this, nextState: T): void {
-    this.currentState = this.states[nextState];
+  transitionTo(this: this, nextState: FiniteStateName): void {
+    this.currentState = this[nextState];
   }
 
   update(this: this): void {

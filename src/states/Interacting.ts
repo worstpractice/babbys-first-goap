@@ -5,8 +5,6 @@ import type { FiniteState } from '../typings/FiniteState';
 export class Interacting implements FiniteState {
   private isWaiting = false;
 
-  // private lastAction: Action | null = null;
-
   private isTimeoutSet = false;
 
   update(this: this, agent: Agent): void {

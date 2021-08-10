@@ -1,14 +1,10 @@
 import type { GameObjects } from 'phaser';
 import type { Action } from '../actions/Action';
 import { FiniteStateMachine } from '../states/FiniteStateMachine';
-import { Idling } from '../states/Idling';
-import { Interacting } from '../states/Interacting';
-import { MovingState } from '../states/Moving';
-import type { ActionName } from '../typings/ActionName';
 import type { AgentName } from '../typings/AgentName';
-import type { DerivedAction } from '../typings/DerivedAction';
 import type { Goal } from '../typings/Fact';
 import type { FiniteStateName } from '../typings/FiniteStateName';
+import type { LazyAction } from '../typings/LazyAction';
 import type { Position } from '../typings/Position';
 import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
@@ -16,8 +12,8 @@ import { toPredicate } from '../utils/mapping/toPredicate';
 import { distanceBetween } from '../utils/shims/distanceBetween';
 import { makePlan } from './makePlan';
 
-type Props = {
-  readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
+type AgentProps = {
+  readonly derivedActions: readonly LazyAction[];
   readonly image: GameObjects.Image;
   readonly initialGoal: Goal;
   readonly initialState: Facts;
@@ -27,23 +23,23 @@ type Props = {
 export class Agent {
   readonly availableActions: readonly Action[];
 
-  get target(): Position | null {
-    return this.plan.at(-1)?.position ?? null;
-  }
-
   facts: Facts;
 
   goal: Goal;
-
-  plan: Action[] = [];
 
   readonly image: GameObjects.Image;
 
   readonly name: AgentName;
 
+  plan: Action[] = [];
+
   readonly stateMachine = new FiniteStateMachine(this);
 
-  constructor({ derivedActions, image, initialGoal, initialState, name }: Props) {
+  get target(): Position | null {
+    return this.plan.at(-1)?.position ?? null;
+  }
+
+  constructor({ derivedActions, image, initialGoal, initialState, name }: AgentProps) {
     this.availableActions = derivedActions.map(this.toAction) as readonly Action[];
     this.image = image;
     this.facts = initialState;
@@ -56,8 +52,8 @@ export class Agent {
   }
 
   /** NOTE: passes `this` to `DerivedAction`. */
-  private readonly toAction = ([name, DerivedAction, position]: readonly [ActionName, DerivedAction, Position]): Action => {
-    return new DerivedAction(name, position, this);
+  private readonly toAction = ([DerivedAction, props]: LazyAction): Action => {
+    return new DerivedAction({ ...props, agent: this });
   };
 
   has<T extends ResourceName>(this: this, name: T): boolean {

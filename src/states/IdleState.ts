@@ -17,9 +17,9 @@ export class IdleState implements FiniteState {
   }
 
   update(this: this): void {
-    if (this.agent.name === 'blacksmith') {
-      console.log(this.agent.currentPlan.at(-1));
-    }
+    // if (this.agent.name === 'blacksmith') {
+    //   console.log(this.agent.currentPlan.at(-1));
+    // }
 
     if (this.agent.isOutOfIdeas()) return;
 

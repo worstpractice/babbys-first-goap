@@ -11,6 +11,10 @@ export class ActionState implements FiniteState {
 
   private isTimeoutSet = false;
 
+  private timerHandle = -1;
+
+  private currentAction: Action | null = null;
+
   constructor(agent: Agent) {
     this.agent = agent;
   }
@@ -23,43 +27,69 @@ export class ActionState implements FiniteState {
     // console.debug(`${this.agent.name} -> stop action`);
   }
 
+  private readonly kickOffTimer = (costInMs: number): void => {
+    window.clearTimeout(this.timerHandle);
+
+    this.timerHandle = window.setTimeout(this.performAction, costInMs);
+  };
+
+  private readonly performAction = (): void => {
+    this.isWaiting = false;
+    this.lastAction = null;
+    this.isTimeoutSet = false;
+
+    if (this.currentAction?.canExecute()) {
+      this.currentAction.execute(); // execute action, might break tools or something like this
+      this.agent.applyAction(this.currentAction);
+    } else {
+      this.agent.plan();
+    }
+
+    this.agent.becomeIdle();
+  };
+
   update(this: this): void {
     if (this.isWaiting) return;
 
-    const maybeAction = this.agent.proceedWithPlan();
-
-    if (!(maybeAction || this.lastAction)) return;
-
-    this.lastAction = maybeAction ?? this.lastAction;
-
-    const action = this.lastAction as Action;
-
-    if (!action.canExecute()) return;
-
     if (this.isTimeoutSet) return;
+
+    const nextAction = this.agent.proceedWithPlan();
+
+    if (!nextAction && !this.lastAction) return;
+
+    this.lastAction = nextAction ?? this.lastAction;
+
+    this.currentAction = this.lastAction as Action;
 
     this.isWaiting = true;
 
     this.isTimeoutSet = true;
 
-    const cost = action.cost;
+    const costInMs = this.currentAction.cost * 500; // 1 cost = 0.5s;
 
     // wait, apply and move to the next one (if there is one)
-    window.setTimeout(() => {
-      console.log('wont be waiting soon');
 
-      window.setTimeout(() => {
-        action.execute(); // execute action, might break tools or something like this
-        this.agent.applyAction(action);
+    this.kickOffTimer(costInMs);
 
-        console.log('is no longer waiting');
+    // const t1 = window.setTimeout(() => {
+    //   window.clearTimeout(t1);
 
-        this.isWaiting = false;
-        this.lastAction = null;
-        this.isTimeoutSet = false;
+    //   const t2 = window.setTimeout(() => {
+    //     window.clearTimeout(t2);
 
-        this.agent.becomeIdle();
-      }, 500 * cost); // 1 cost = 0.5s
-    });
+    //     this.isWaiting = false;
+    //     this.lastAction = null;
+    //     this.isTimeoutSet = false;
+
+    //     if (this.currentAction.canExecute()) {
+    //       this.currentAction.execute(); // execute action, might break tools or something like this
+    //       this.agent.applyAction(action);
+    //     } else {
+    //       this.agent.plan();
+    //     }
+
+    //     this.agent.becomeIdle();
+    //   }, 500 * cost); // 1 cost = 0.5s
+    // });
   }
 }

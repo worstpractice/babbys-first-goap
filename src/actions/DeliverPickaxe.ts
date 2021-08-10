@@ -11,6 +11,10 @@ export class DeliverPickaxe extends Action {
     this.delivers('pickaxe');
   }
 
+  canExecute(this: this): boolean {
+    return this.agent.has('pickaxe'); // Should not really be here, but prevents race conditions atm
+  }
+
   execute(this: this): void {
     console.count(this.constructor.name);
 

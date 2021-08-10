@@ -10,8 +10,6 @@ export class MovingState implements FiniteState {
 
   enter(this: this): void {
     console.debug(`${this.agent.name}: moving`);
-
-    this.agent.updateTarget();
   }
 
   leave(this: this): void {

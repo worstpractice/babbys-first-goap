@@ -18,15 +18,13 @@ import type { TextName } from '../typings/TextName';
 import { createGrid } from '../utils/createGrid';
 
 export class DemoScene extends Phaser.Scene {
-  readonly agents = {} as Table<AgentName, Agent>;
+  private readonly agents = {} as Table<AgentName, Agent>;
 
-  readonly texts = {} as Table<TextName, GameObjects.Text>;
+  private readonly texts = {} as Table<TextName, GameObjects.Text>;
 
-  readonly images = {} as Table<ImageName, GameObjects.Image>;
+  private readonly images = {} as Table<ImageName, GameObjects.Image>;
 
-  private timerHandle: ReturnType<Window['setTimeout']> = -1;
-
-  private planningCooldownInMs = 1000;
+  private readonly planningCooldownInMs = 1000;
 
   constructor() {
     super({
@@ -62,21 +60,19 @@ export class DemoScene extends Phaser.Scene {
   }
 
   private spawnPlans(this: this): void {
-    this.queueReplan(); // Kicks off the recursion
+    this.replan(); // Kicks off the recursion
   }
 
-  private readonly queueReplan = () => {
-    this.timerHandle = window.setTimeout(this.replan, this.planningCooldownInMs);
+  private readonly queueReplan = (): void => {
+    window.setTimeout(this.replan, this.planningCooldownInMs);
   };
 
-  private readonly replan = () => {
-    window.clearTimeout(this.timerHandle);
-
+  private readonly replan = (): void => {
     for (const name of AGENT_NAMES) {
       this.agents[name].plan();
     }
 
-    this.queueReplan();
+    window.setTimeout(this.queueReplan);
   };
 
   private updateAgents(this: this): void {

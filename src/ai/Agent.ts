@@ -11,7 +11,9 @@ import type { Goal } from '../typings/Fact';
 import type { Mutable } from '../typings/Mutable';
 import type { Position } from '../typings/Position';
 import type { Predicate } from '../typings/Predicate';
+import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
+import { toPredicate } from '../utils/arrays/mapping/toPredicate';
 import { distanceBetween } from '../utils/shims/distanceBetween';
 import { makePlan } from './makePlan';
 
@@ -27,15 +29,15 @@ type Props = {
 export class Agent {
   readonly availableActions: readonly Action[];
 
-  currentAction: Action | null = null;
+  get currentTarget(): Position | null {
+    return this.currentPlan.at(-1)?.position ?? null;
+  }
 
   currentFacts: Facts;
 
   currentGoal: Goal;
 
   currentPlan: Action[] = [];
-
-  currentTarget: Position | null = null;
 
   readonly image: GameObjects.Image;
 
@@ -61,6 +63,10 @@ export class Agent {
   private readonly toAction = ([name, DerivedAction, position]: readonly [ActionName, DerivedAction, Position]): Action => {
     return new DerivedAction(name, position, this);
   };
+
+  has<T extends ResourceName>(this: this, name: T): boolean {
+    return this.currentFacts[toPredicate(name)];
+  }
 
   update(this: this): void {
     this.stateMachine.update();
@@ -88,10 +94,6 @@ export class Agent {
     return !this.currentPlan.length;
   }
 
-  updateTarget(this: this): void {
-    this.currentTarget = this.currentPlan.at(-1)?.position ?? null;
-  }
-
   proceedWithPlan(this: this): Action | null {
     return this.currentPlan.pop() ?? null;
   }
@@ -104,19 +106,17 @@ export class Agent {
 
     const distance = distanceBetween(imageX, imageY, targetX, targetY);
 
-    const horizontal = distanceBetween(imageX + 1, imageY, targetX, targetY);
-    const changeX = horizontal < distance ? 1 : -1;
-
-    const vertical = distanceBetween(imageX, imageY + 1, targetX, targetY);
-    const changeY = vertical < distance ? 1 : -1;
-
-    this.image.x += changeX;
-    this.image.y += changeY;
-
     const hasArrived = distance < 10;
 
-    if (hasArrived) {
-      this.currentTarget = null;
+    if (!hasArrived) {
+      const horizontal = distanceBetween(imageX + 1, imageY, targetX, targetY);
+      const changeX = horizontal < distance ? 1 : -1;
+
+      const vertical = distanceBetween(imageX, imageY + 1, targetX, targetY);
+      const changeY = vertical < distance ? 1 : -1;
+
+      this.image.x += changeX;
+      this.image.y += changeY;
     }
 
     return hasArrived;

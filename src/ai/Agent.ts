@@ -16,12 +16,12 @@ import type { Planner } from './Planner';
 
 type Props = {
   readonly derivedActions: readonly (readonly [ActionName, DerivedAction, Position])[];
+  readonly image: GameObjects.Image;
   readonly initialGoal: Goal;
   readonly initialState: Facts;
   readonly name: string;
   readonly planner: Planner;
   readonly stateMachine: StateMachine;
-  readonly sprite: GameObjects.Sprite;
 };
 
 export class Agent {
@@ -31,11 +31,11 @@ export class Agent {
 
   readonly goal: Goal;
 
+  readonly image: GameObjects.Image;
+
   readonly name: string;
 
   readonly planner: Planner;
-
-  readonly sprite: GameObjects.Sprite;
 
   readonly facts: Facts = {
     has_ore: false,
@@ -46,16 +46,14 @@ export class Agent {
 
   target: Position | null = null;
 
-  constructor({ derivedActions, initialGoal, initialState, name, planner, stateMachine, sprite }: Props) {
+  constructor({ derivedActions, image, initialGoal, initialState, name, planner, stateMachine }: Props) {
     this.actions = derivedActions.map(this.toAction) as readonly Action[];
+    this.image = image;
     this.facts = initialState;
     this.goal = initialGoal;
     this.name = name;
     this.planner = planner;
     this.stateMachine = stateMachine;
-    this.sprite = sprite;
-
-    this.sprite.setDepth(1337);
 
     this.stateMachine.add('idle', new IdleState(this));
     this.stateMachine.add('moving', new MovingState(this));
@@ -93,19 +91,19 @@ export class Agent {
   moveToTarget(this: this): boolean {
     if (!this.target) return false;
 
-    const { x: spriteX, y: spriteY } = this.sprite;
+    const { x: imageX, y: imageY } = this.image;
     const { x: targetX, y: targetY } = this.target;
 
-    const distance = distanceBetween(spriteX, spriteY, targetX, targetY);
+    const distance = distanceBetween(imageX, imageY, targetX, targetY);
 
-    const horizontal = distanceBetween(spriteX + 1, spriteY, targetX, targetY);
+    const horizontal = distanceBetween(imageX + 1, imageY, targetX, targetY);
     const changeX = horizontal < distance ? 1 : -1;
 
-    const vertical = distanceBetween(spriteX, spriteY + 1, targetX, targetY);
+    const vertical = distanceBetween(imageX, imageY + 1, targetX, targetY);
     const changeY = vertical < distance ? 1 : -1;
 
-    this.sprite.x += changeX;
-    this.sprite.y += changeY;
+    this.image.x += changeX;
+    this.image.y += changeY;
 
     const hasArrived = distance < 10;
 

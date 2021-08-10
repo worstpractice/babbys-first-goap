@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 import { Agent } from '../ai/Agent';
 import { Planner } from '../ai/Planner';
 import { AGENT_NAMES } from '../constants/AGENT_NAMES';
+import { IMAGE_NAMES } from '../constants/IMAGE_NAMES';
 import { KEY_PATH_PAIRS } from '../constants/KEY_PATH_PAIRS';
-import { SPRITE_NAMES } from '../constants/SPRITE_NAMES';
 import { TEXT_NAMES } from '../constants/TEXT_NAMES';
 import { storedQuantities } from '../data/storedQuantities';
 import { startingActions } from '../starting/startingActions';
@@ -13,7 +13,7 @@ import { startingGoals } from '../starting/startingGoals';
 import { startingPositions } from '../starting/startingPositions';
 import { StateMachine } from '../states/StateMachine';
 import type { AgentName } from '../typings/AgentName';
-import type { SpriteName } from '../typings/SpriteName';
+import type { ImageName } from '../typings/ImageName';
 import type { Table } from '../typings/Table';
 import type { TextName } from '../typings/TextName';
 import { createGrid } from '../utils/createGrid';
@@ -23,7 +23,7 @@ export class DemoScene extends Phaser.Scene {
 
   readonly texts = {} as Table<TextName, GameObjects.Text>;
 
-  readonly sprites = {} as Table<SpriteName, GameObjects.Sprite>;
+  readonly images = {} as Table<ImageName, GameObjects.Image>;
 
   private timerHandle: ReturnType<Window['setTimeout']> = -1;
 
@@ -34,6 +34,9 @@ export class DemoScene extends Phaser.Scene {
       active: true,
       key: new.target.name.toLowerCase(),
       physics: {
+        arcade: {
+          debug: true,
+        },
         default: 'arcade',
       },
       visible: true,
@@ -48,7 +51,7 @@ export class DemoScene extends Phaser.Scene {
 
   create(this: this): void {
     this.spawnGrass();
-    this.spawnSprites();
+    this.spawnImages();
     this.spawnAgents();
     this.spawnText();
     this.spawnPlans();
@@ -60,7 +63,7 @@ export class DemoScene extends Phaser.Scene {
   }
 
   private spawnPlans(this: this): void {
-    this.queueReplan(); // Kick off the recursion
+    this.queueReplan(); // Kicks off the recursion
   }
 
   private readonly queueReplan = () => {
@@ -91,15 +94,15 @@ export class DemoScene extends Phaser.Scene {
 
   private spawnGrass(this: this): void {
     for (const [x, y] of createGrid(20, 15)) {
-      this.add.sprite(x, y, 'grass');
+      this.add.image(x, y, 'grass');
     }
   }
 
-  private spawnSprites(this: this): void {
-    for (const name of SPRITE_NAMES) {
+  private spawnImages(this: this): void {
+    for (const name of IMAGE_NAMES) {
       const { x, y } = startingPositions[name];
 
-      this.sprites[name] = this.add.sprite(x, y, name);
+      this.images[name] = this.add.image(x, y, name);
     }
   }
 
@@ -107,11 +110,11 @@ export class DemoScene extends Phaser.Scene {
     for (const name of AGENT_NAMES) {
       this.agents[name] = new Agent({
         derivedActions: startingActions[name],
+        image: this.images[name],
         initialGoal: startingGoals[name],
         initialState: startingFacts[name],
         name,
         planner: new Planner(),
-        sprite: this.sprites[name],
         stateMachine: new StateMachine(),
       });
     }

@@ -1,6 +1,7 @@
 import type { Agent } from '../ai/Agent';
 import type { ActionName } from '../typings/ActionName';
 import type { Position } from '../typings/Position';
+import { coinFlip } from '../utils/coinFlip';
 import { Action } from './Action';
 
 export class MineOre extends Action {
@@ -11,14 +12,10 @@ export class MineOre extends Action {
     this.retrieves('ore');
   }
 
-  canExecute(this: this): boolean {
-    return !this.agent.has('ore'); // Should not really be here, but prevents race conditions atm
-  }
-
   execute(this: this): void {
-    console.count(this.constructor.name);
+    console.count(`${this.agent.name}: ${this.constructor.name}`);
 
-    if (Math.random() > 0.5) return;
+    if (coinFlip()) return;
 
     console.log('Tool broke while mining :(');
 

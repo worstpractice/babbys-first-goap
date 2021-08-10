@@ -11,12 +11,8 @@ export class DeliverOre extends Action {
     this.delivers('ore');
   }
 
-  canExecute(this: this): boolean {
-    return this.agent.has('ore'); // Should not really be here, but prevents race conditions atm
-  }
-
   execute(this: this): void {
-    console.count(this.constructor.name);
+    console.count(`${this.agent.name}: ${this.constructor.name}`);
 
     storedQuantities.ore++;
   }

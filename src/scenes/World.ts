@@ -58,7 +58,7 @@ export class World extends Phaser.Scene {
 
   private readonly replan = (): void => {
     for (const name of AGENT_NAMES) {
-      this.agents[name].plan();
+      this.agents[name].makePlan();
     }
 
     window.setTimeout(this.queueReplan);

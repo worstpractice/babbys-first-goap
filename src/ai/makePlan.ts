@@ -2,6 +2,7 @@ import type { Action } from '../actions/Action';
 import type { Goal } from '../typings/Fact';
 import type { GraphNode } from '../typings/GraphNode';
 import type { Facts } from '../typings/tables/Facts';
+import { arePreconditionsMet } from '../utils/arePreconditionsMet';
 import { exclude } from '../utils/filtering/exclude';
 import { byCostDescending } from '../utils/sorting/mostExpensiveFirst';
 
@@ -12,9 +13,10 @@ const warn = (reason: string, actions: readonly Action[], facts: Facts, goal: Go
   console.warn('Current facts', facts);
   console.warn('Available actions', actions);
   console.groupEnd();
+  debugger; // eslint-disable-line no-debugger
 };
 
-const baseGraphOn = (facts: Facts): GraphNode => {
+const createRootNodeFrom = (facts: Facts): GraphNode => {
   return {
     action: null,
     cost: 0,
@@ -27,9 +29,9 @@ const pathfind = (parent: GraphNode, actions: readonly Action[], goal: Goal): Gr
   const leaves: GraphNode[] = [];
 
   for (const action of actions) {
-    if (!arePreconditionsMet(parent.facts, action.before)) continue;
+    if (!arePreconditionsMet(parent, action)) continue;
 
-    const currentFacts = { ...parent.facts, ...action.after };
+    const currentFacts: Facts = { ...parent.facts, ...action.after };
 
     const node: GraphNode = {
       action,
@@ -71,19 +73,11 @@ const traverseGraph = (path: GraphNode[]): Action[] => {
   return plan;
 };
 
-const arePreconditionsMet = (facts: Facts, preconditions: Facts): boolean => {
-  for (const [key, value] of Object.entries(preconditions)) {
-    if (facts[key] !== value) return false;
-  }
-
-  return true;
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////////
 // * Public *
 /////////////////////////////////////////////////////////////////////////////////////////////
 export const makePlan = (actions: readonly Action[], facts: Facts, goal: Goal): readonly Action[] => {
-  const root: GraphNode = baseGraphOn(facts);
+  const root: GraphNode = createRootNodeFrom(facts);
 
   const path: GraphNode[] = pathfind(root, actions, goal);
 

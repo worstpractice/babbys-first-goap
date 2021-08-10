@@ -2,6 +2,7 @@ import type { Agent } from '../ai/Agent';
 import { storedQuantities } from '../data/storedQuantities';
 import type { ActionName } from '../typings/ActionName';
 import type { Position } from '../typings/Position';
+import { arePreconditionsMet } from '../utils/arePreconditionsMet';
 import { Action } from './Action';
 
 export class RetrievePickaxe extends Action {
@@ -12,12 +13,12 @@ export class RetrievePickaxe extends Action {
   }
 
   canExecute(this: this): boolean {
-    return Boolean(storedQuantities.pickaxe);
+    return arePreconditionsMet(this.agent, this) && Boolean(storedQuantities.pickaxe); // Weird outside dependency, should not be here
   }
 
   execute(this: this): void {
-    console.count(this.constructor.name);
+    console.count(`${this.agent.name}: ${this.constructor.name}`);
 
-    storedQuantities.pickaxe--;
+    storedQuantities.pickaxe--; // 🤦‍♂️
   }
 }

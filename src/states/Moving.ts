@@ -7,6 +7,6 @@ export class MovingState implements FiniteState {
 
     if (!hasArrived) return;
 
-    agent.transitionTo('action');
+    agent.transitionTo('interacting');
   }
 }

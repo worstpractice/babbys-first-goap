@@ -11,14 +11,14 @@ export class FiniteStateMachine {
   private currentState: FiniteState;
 
   private readonly states: { readonly [key in FiniteStateName]: FiniteState } = {
-    action: new Interacting(),
-    idle: new Idling(),
+    idling: new Idling(),
+    interacting: new Interacting(),
     moving: new MovingState(),
   };
 
   constructor(agent: Agent) {
     this.agent = agent;
-    this.currentState = this.states['idle'];
+    this.currentState = this.states.idling;
   }
 
   transitionTo<T extends FiniteStateName>(this: this, nextState: T): void {

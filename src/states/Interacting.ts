@@ -5,7 +5,7 @@ import type { FiniteState } from '../typings/FiniteState';
 export class Interacting implements FiniteState {
   private isWaiting = false;
 
-  private lastAction: Action | null = null;
+  // private lastAction: Action | null = null;
 
   private isTimeoutSet = false;
 
@@ -15,35 +15,28 @@ export class Interacting implements FiniteState {
 
     const nextAction = agent.proceedWithPlan();
 
-    if (!nextAction && !this.lastAction) return;
-
-    this.lastAction = nextAction ?? this.lastAction;
-
-    const action = this.lastAction as Action;
+    if (!nextAction) return;
 
     this.isWaiting = true;
 
     this.isTimeoutSet = true;
 
-    // wait, apply and move to the next one (if there is one)
-
     const performAction = (): void => {
       this.isWaiting = false;
-      this.lastAction = null;
       this.isTimeoutSet = false;
 
-      if (action.canExecute()) {
-        action.execute(); // execute action, might break tools or something like this
-        agent.applyAction(action);
+      if (nextAction.canExecute()) {
+        nextAction.execute();
+        agent.applyAction(nextAction);
       } else {
-        agent.plan();
+        agent.makePlan();
       }
 
-      agent.transitionTo('idle');
+      agent.transitionTo('idling');
     };
 
     const kickOffTimer = (): void => {
-      const costInMs = action.cost * 500; // 1 cost = 0.5s;
+      const costInMs = nextAction.cost * 500; // 1 cost = 0.5s;
 
       window.setTimeout(performAction, costInMs);
     };

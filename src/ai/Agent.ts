@@ -27,15 +27,15 @@ type Props = {
 export class Agent {
   readonly availableActions: readonly Action[];
 
-  get currentTarget(): Position | null {
-    return this.currentPlan.at(-1)?.position ?? null;
+  get target(): Position | null {
+    return this.plan.at(-1)?.position ?? null;
   }
 
-  currentFacts: Facts;
+  facts: Facts;
 
-  currentGoal: Goal;
+  goal: Goal;
 
-  currentPlan: Action[] = [];
+  plan: Action[] = [];
 
   readonly image: GameObjects.Image;
 
@@ -46,8 +46,8 @@ export class Agent {
   constructor({ derivedActions, image, initialGoal, initialState, name }: Props) {
     this.availableActions = derivedActions.map(this.toAction) as readonly Action[];
     this.image = image;
-    this.currentFacts = initialState;
-    this.currentGoal = initialGoal;
+    this.facts = initialState;
+    this.goal = initialGoal;
     this.name = name;
   }
 
@@ -61,7 +61,7 @@ export class Agent {
   };
 
   has<T extends ResourceName>(this: this, name: T): boolean {
-    return this.currentFacts[toPredicate(name)];
+    return this.facts[toPredicate(name)];
   }
 
   transitionTo(this: this, to: FiniteStateName): void {
@@ -69,14 +69,14 @@ export class Agent {
   }
 
   proceedWithPlan(this: this): Action | null {
-    return this.currentPlan.pop() ?? null;
+    return this.plan.pop() ?? null;
   }
 
   moveToTarget(this: this): boolean {
-    if (!this.currentTarget) return false;
+    if (!this.target) return false;
 
     const { x: imageX, y: imageY } = this.image;
-    const { x: targetX, y: targetY } = this.currentTarget;
+    const { x: targetX, y: targetY } = this.target;
 
     const distance = distanceBetween(imageX, imageY, targetX, targetY);
 
@@ -97,22 +97,22 @@ export class Agent {
   }
 
   gains<T extends ResourceName>(this: this, resource: T): void {
-    this.currentFacts[toPredicate(resource)] = true;
+    this.facts[toPredicate(resource)] = true;
   }
 
   loses<T extends ResourceName>(this: this, resource: T): void {
-    this.currentFacts[toPredicate(resource)] = false;
+    this.facts[toPredicate(resource)] = false;
   }
 
   applyAction({ after }: Action): void {
     for (const [name, value] of Object.entries(after)) {
-      this.currentFacts[name] = value;
+      this.facts[name] = value;
     }
   }
 
-  plan(this: this): void {
-    const plan: readonly Action[] = makePlan(this.availableActions, this.currentFacts, this.currentGoal);
+  makePlan(this: this): void {
+    const plan: readonly Action[] = makePlan(this.availableActions, this.facts, this.goal);
 
-    this.currentPlan = plan as Action[];
+    this.plan = plan as Action[];
   }
 }

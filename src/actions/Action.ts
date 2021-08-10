@@ -3,6 +3,7 @@ import type { ActionName } from '../typings/ActionName';
 import type { Position } from '../typings/Position';
 import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
+import { arePreconditionsMet } from '../utils/arePreconditionsMet';
 import { toPredicate } from '../utils/mapping/toPredicate';
 
 export class Action {
@@ -67,6 +68,6 @@ export class Action {
   }
 
   canExecute(this: this): boolean {
-    return true;
+    return arePreconditionsMet(this.agent, this);
   }
 }

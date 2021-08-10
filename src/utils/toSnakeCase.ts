@@ -2,6 +2,8 @@ const EVERYTHING_BUT_ASCII_LETTERS = /[^a-z]/giu;
 const SINGLE_UPPERCASE_LETTER = /[A-Z]/u;
 
 export const toSnakeCase = <T extends string>(input: T): string => {
+  if (input.includes('_') || input.includes('-')) throw new RangeError("`toSnakeCase` doesn't convert hyphens (or preserve underscores) yet!");
+
   const str: string = input.replaceAll(EVERYTHING_BUT_ASCII_LETTERS, '');
 
   if (!str.length) return '';

@@ -18,6 +18,6 @@ export class MineOre extends Action {
 
     console.log('Tool broke while mining :(');
 
-    this.agent.setState('has_pickaxe', false);
+    this.agent.loses('pickaxe');
   }
 }

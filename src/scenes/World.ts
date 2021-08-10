@@ -17,7 +17,7 @@ import type { Table } from '../typings/Table';
 import type { TextName } from '../typings/TextName';
 import { createGrid } from '../utils/createGrid';
 
-export class DemoScene extends Phaser.Scene {
+export class World extends Phaser.Scene {
   private readonly agents = {} as Table<AgentName, Agent>;
 
   private readonly texts = {} as Table<TextName, GameObjects.Text>;
@@ -27,17 +27,7 @@ export class DemoScene extends Phaser.Scene {
   private readonly planningCooldownInMs = 1000;
 
   constructor() {
-    super({
-      active: true,
-      key: 'demoscene',
-      physics: {
-        arcade: {
-          debug: true,
-        },
-        default: 'arcade',
-      },
-      visible: true,
-    });
+    super(new.target.name.toLowerCase());
   }
 
   preload(this: this): void {

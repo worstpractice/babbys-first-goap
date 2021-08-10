@@ -2,8 +2,8 @@ import type { Action } from '../actions/Action';
 import type { Goal } from '../typings/Fact';
 import type { GraphNode } from '../typings/GraphNode';
 import type { Facts } from '../typings/tables/Facts';
-import { exclude } from '../utils/arrays/filtering/exclude';
-import { byCostDescending } from '../utils/arrays/sorting/mostExpensiveFirst';
+import { exclude } from '../utils/filtering/exclude';
+import { byCostDescending } from '../utils/sorting/mostExpensiveFirst';
 
 const warn = (reason: string, actions: readonly Action[], facts: Facts, goal: Goal): void => {
   console.group();

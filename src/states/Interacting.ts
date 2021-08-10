@@ -2,7 +2,7 @@ import type { Action } from '../actions/Action';
 import type { Agent } from '../ai/Agent';
 import type { FiniteState } from '../typings/FiniteState';
 
-export class ActionState implements FiniteState {
+export class Interacting implements FiniteState {
   private readonly agent: Agent;
 
   private isWaiting = false;
@@ -45,7 +45,7 @@ export class ActionState implements FiniteState {
       this.agent.plan();
     }
 
-    this.agent.becomeIdle();
+    this.agent.transitionTo('idle')
   };
 
   update(this: this): void {
@@ -53,7 +53,7 @@ export class ActionState implements FiniteState {
 
     if (this.isTimeoutSet) return;
 
-    const nextAction = this.agent.proceedWithPlan();
+    const nextAction = this.agent.proceedWithCurrentPlan();
 
     if (!nextAction && !this.lastAction) return;
 

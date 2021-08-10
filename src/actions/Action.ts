@@ -1,9 +1,9 @@
 import type { Agent } from '../ai/Agent';
 import type { ActionName } from '../typings/ActionName';
-import type { Facts } from '../typings/tables/Facts';
 import type { Position } from '../typings/Position';
 import type { ResourceName } from '../typings/ResourceName';
-import { toPredicate } from '../utils/arrays/mapping/toPredicate';
+import type { Facts } from '../typings/tables/Facts';
+import { toPredicate } from '../utils/mapping/toPredicate';
 
 export class Action {
   private readonly name: string;

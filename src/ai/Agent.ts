@@ -1,19 +1,18 @@
 import type { GameObjects } from 'phaser';
 import type { Action } from '../actions/Action';
-import { ActionState } from '../states/ActionState';
 import type { FiniteStateMachine } from '../states/FiniteStateMachine';
-import { IdleState } from '../states/IdleState';
-import { MovingState } from '../states/MovingState';
+import { Idling } from '../states/Idling';
+import { Interacting } from '../states/Interacting';
+import { MovingState } from '../states/Moving';
 import type { ActionName } from '../typings/ActionName';
 import type { AgentName } from '../typings/AgentName';
 import type { DerivedAction } from '../typings/DerivedAction';
 import type { Goal } from '../typings/Fact';
-import type { Mutable } from '../typings/Mutable';
+import type { FiniteStateName } from '../typings/FiniteStateName';
 import type { Position } from '../typings/Position';
-import type { Predicate } from '../typings/Predicate';
 import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
-import { toPredicate } from '../utils/arrays/mapping/toPredicate';
+import { toPredicate } from '../utils/mapping/toPredicate';
 import { distanceBetween } from '../utils/shims/distanceBetween';
 import { makePlan } from './makePlan';
 
@@ -53,13 +52,18 @@ export class Agent {
     this.name = name;
     this.stateMachine = stateMachine;
 
-    this.stateMachine.add('idle', new IdleState(this));
+    this.stateMachine.add('idle', new Idling(this));
     this.stateMachine.add('moving', new MovingState(this));
-    this.stateMachine.add('action', new ActionState(this));
+    this.stateMachine.add('action', new Interacting(this));
 
-    this.becomeIdle();
+    this.transitionTo('idle');
   }
 
+  update(this: this): void {
+    this.stateMachine.update();
+  }
+
+  /** NOTE: passes `this` to `DerivedAction`. */
   private readonly toAction = ([name, DerivedAction, position]: readonly [ActionName, DerivedAction, Position]): Action => {
     return new DerivedAction(name, position, this);
   };
@@ -68,33 +72,11 @@ export class Agent {
     return this.currentFacts[toPredicate(name)];
   }
 
-  update(this: this): void {
-    this.stateMachine.update();
+  transitionTo(this: this, to: FiniteStateName): void {
+    this.stateMachine.enter(to);
   }
 
-  takeAction(this: this): void {
-    this.stateMachine.enter('action');
-  }
-
-  becomeIdle(this: this): void {
-    this.stateMachine.enter('idle');
-  }
-
-  startMoving(this: this): void {
-    this.stateMachine.enter('moving');
-  }
-
-  applyAction({ after }: Action): void {
-    for (const [name, value] of Object.entries(after)) {
-      this.setState(name, value);
-    }
-  }
-
-  isOutOfIdeas(this: this): boolean {
-    return !this.currentPlan.length;
-  }
-
-  proceedWithPlan(this: this): Action | null {
+  proceedWithCurrentPlan(this: this): Action | null {
     return this.currentPlan.pop() ?? null;
   }
 
@@ -122,24 +104,23 @@ export class Agent {
     return hasArrived;
   }
 
-  setState(name: Predicate, value: boolean): void {
-    this.currentFacts[name] = value;
+  gains<T extends ResourceName>(this: this, resource: T): void {
+    this.currentFacts[toPredicate(resource)] = true;
   }
 
-  is(name: Predicate, value: boolean): boolean {
-    return this.currentFacts[name] === value;
+  loses<T extends ResourceName>(this: this, resource: T): void {
+    this.currentFacts[toPredicate(resource)] = false;
   }
 
-  private isActionReady(action: Action) {
-    return action.canExecute();
-  }
-
-  // get all actions with cleared preconditions
-  getUsableActions() {
-    return this.availableActions.filter(this.isActionReady);
+  applyAction({ after }: Action): void {
+    for (const [name, value] of Object.entries(after)) {
+      this.currentFacts[name] = value;
+    }
   }
 
   plan(this: this): void {
-    this.currentPlan = makePlan(this.availableActions, this.currentFacts, this.currentGoal) as Mutable<ReturnType<typeof makePlan>>;
+    const plan: readonly Action[] = makePlan(this.availableActions, this.currentFacts, this.currentGoal);
+
+    this.currentPlan = plan as Action[];
   }
 }

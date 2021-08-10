@@ -1,6 +1,6 @@
 import type { GameObjects } from 'phaser';
 import type { Action } from '../actions/Action';
-import type { FiniteStateMachine } from '../states/FiniteStateMachine';
+import { FiniteStateMachine } from '../states/FiniteStateMachine';
 import { Idling } from '../states/Idling';
 import { Interacting } from '../states/Interacting';
 import { MovingState } from '../states/Moving';
@@ -22,7 +22,6 @@ type Props = {
   readonly initialGoal: Goal;
   readonly initialState: Facts;
   readonly name: AgentName;
-  readonly stateMachine: FiniteStateMachine;
 };
 
 export class Agent {
@@ -42,21 +41,14 @@ export class Agent {
 
   readonly name: AgentName;
 
-  readonly stateMachine: FiniteStateMachine;
+  readonly stateMachine = new FiniteStateMachine(this);
 
-  constructor({ derivedActions, image, initialGoal, initialState, name, stateMachine }: Props) {
+  constructor({ derivedActions, image, initialGoal, initialState, name }: Props) {
     this.availableActions = derivedActions.map(this.toAction) as readonly Action[];
     this.image = image;
     this.currentFacts = initialState;
     this.currentGoal = initialGoal;
     this.name = name;
-    this.stateMachine = stateMachine;
-
-    this.stateMachine.add('idle', new Idling(this));
-    this.stateMachine.add('moving', new MovingState(this));
-    this.stateMachine.add('action', new Interacting(this));
-
-    this.transitionTo('idle');
   }
 
   update(this: this): void {
@@ -73,10 +65,10 @@ export class Agent {
   }
 
   transitionTo(this: this, to: FiniteStateName): void {
-    this.stateMachine.enter(to);
+    this.stateMachine.transitionTo(to);
   }
 
-  proceedWithCurrentPlan(this: this): Action | null {
+  proceedWithPlan(this: this): Action | null {
     return this.currentPlan.pop() ?? null;
   }
 

@@ -10,7 +10,6 @@ import { startingActions } from '../starting/startingActions';
 import { startingFacts } from '../starting/startingFacts';
 import { startingGoals } from '../starting/startingGoals';
 import { startingPositions } from '../starting/startingPositions';
-import { FiniteStateMachine } from '../states/FiniteStateMachine';
 import type { AgentName } from '../typings/AgentName';
 import type { ImageName } from '../typings/ImageName';
 import type { Table } from '../typings/Table';
@@ -99,7 +98,6 @@ export class World extends Phaser.Scene {
         initialGoal: startingGoals[name],
         initialState: startingFacts[name],
         name,
-        stateMachine: new FiniteStateMachine(),
       });
     }
   }

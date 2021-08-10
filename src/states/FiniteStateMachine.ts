@@ -1,29 +1,31 @@
+import type { Agent } from '../ai/Agent';
 import type { FiniteState } from '../typings/FiniteState';
 import type { FiniteStateName } from '../typings/FiniteStateName';
-import type { FiniteStates } from '../typings/FiniteStates';
-import type { Table } from '../typings/Table';
+import { Idling } from './Idling';
+import { Interacting } from './Interacting';
+import { MovingState } from './Moving';
 
 export class FiniteStateMachine {
-  private readonly states = {} as Table<FiniteStateName, FiniteState>;
+  private readonly agent: Agent;
 
-  private state: FiniteState | null = null;
+  private currentState: FiniteState;
 
-  add<T extends FiniteStateName>(this: this, name: T, state: FiniteStates[T]): void {
-    this.states[name] = state;
+  private readonly states: { readonly [key in FiniteStateName]: FiniteState } = {
+    action: new Interacting(),
+    idle: new Idling(),
+    moving: new MovingState(),
+  };
+
+  constructor(agent: Agent) {
+    this.agent = agent;
+    this.currentState = this.states['idle'];
   }
 
-  enter<T extends FiniteStateName>(this: this, name: T): void {
-    if (this.state) this.state.leave();
-
-    const nextState = this.states[name] as FiniteState;
-
-    this.state = nextState;
-    this.state.enter();
+  transitionTo<T extends FiniteStateName>(this: this, nextState: T): void {
+    this.currentState = this.states[nextState];
   }
 
   update(this: this): void {
-    if (!this.state) return;
-
-    this.state.update();
+    this.currentState.update(this.agent);
   }
 }

@@ -11,6 +11,10 @@ export class MineOre extends Action {
     this.retrieves('ore');
   }
 
+  canExecute(this: this): boolean {
+    return !this.agent.has('ore'); // Should not really be here, but prevents race conditions atm
+  }
+
   execute(this: this): void {
     console.count(this.constructor.name);
 

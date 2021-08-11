@@ -9,7 +9,10 @@ import type { FiniteStateName } from 'src/typings/names/FiniteStateName';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
 import type { Facts } from 'src/typings/tables/Facts';
+import { canExecute } from 'src/utils/arePreconditionsMet';
+import { counted } from 'src/utils/counted';
 import { toPredicate } from 'src/utils/mapping/toPredicate';
+import { toResourceName } from 'src/utils/mapping/toResourceName';
 import { distanceBetween } from 'src/utils/shims/distanceBetween';
 
 export type AgentProps = {
@@ -19,6 +22,8 @@ export type AgentProps = {
   readonly initialFacts: Facts;
   readonly name: AgentName;
 };
+
+const DEBUG = false;
 
 export class Agent {
   readonly availableActions: readonly Action[];
@@ -92,6 +97,25 @@ export class Agent {
     return hasArrived;
   }
 
+  attempt(this: this, action: Action): void {
+    canExecute(this, action) ? this.execute(action) : this.makePlan();
+  }
+
+  private execute(this: this, action: Action): void {
+    console.groupCollapsed(counted(`🏁 ${this.name} -> ${action.name}`));
+
+    for (const [name, value] of Object.entries(action.after)) {
+      this.facts[name] = value;
+
+      const emoji = value ? `🏆` : `💸`;
+      const outcome = value ? 'gained' : 'lost';
+
+      console.log(`${emoji} ${outcome}: ${toResourceName(name)}`);
+    }
+
+    console.groupEnd();
+  }
+
   gains<T extends ResourceName>(this: this, resource: T): void {
     this.facts[toPredicate(resource)] = true;
   }
@@ -100,13 +124,9 @@ export class Agent {
     this.facts[toPredicate(resource)] = false;
   }
 
-  applyAction({ after }: Action): void {
-    for (const [name, value] of Object.entries(after)) {
-      this.facts[name] = value;
-    }
-  }
-
   makePlan(this: this): void {
+    DEBUG && console.count(`🧠 ${this.name} -> planning`);
+
     const plan: readonly Action[] = makePlan(this.availableActions, this.facts, this.goal);
 
     this.plan = plan as Action[];

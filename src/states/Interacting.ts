@@ -16,12 +16,7 @@ export class Interacting implements FiniteState {
     const performAction = (): void => {
       this.isWaiting = false;
 
-      if (nextAction.canExecute()) {
-        nextAction.execute();
-        agent.applyAction(nextAction);
-      } else {
-        agent.makePlan();
-      }
+      agent.attempt(nextAction);
 
       agent.transitionTo('idling');
     };

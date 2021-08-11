@@ -2,7 +2,7 @@ import type { Agent } from 'src/ai/Agent';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
 import type { Facts } from 'src/typings/tables/Facts';
-import { arePreconditionsMet } from 'src/utils/arePreconditionsMet';
+import { canExecute } from 'src/utils/arePreconditionsMet';
 import { toPredicate } from 'src/utils/mapping/toPredicate';
 import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
 
@@ -15,7 +15,7 @@ export type ActionProps = {
 export class Action {
   readonly cost: number;
 
-  private readonly name: string;
+  readonly name: string;
 
   protected readonly agent: Agent;
 
@@ -38,19 +38,19 @@ export class Action {
     this.agent = agent;
   }
 
-  protected retrieves<T extends ResourceName>(resource: T): void {
+  protected willRetrieve<T extends ResourceName>(resource: T): void {
     this.cannotHave(resource);
-    this.gains(resource);
+    this.willGain(resource);
   }
 
-  protected delivers<T extends ResourceName>(resource: T): void {
+  protected willDeliver<T extends ResourceName>(resource: T): void {
     this.mustHave(resource);
-    this.loses(resource);
+    this.willLose(resource);
   }
 
-  protected exchanges<T extends ResourceName, U extends ResourceName>(resource: T, desiredResource: U): void {
-    this.delivers(resource);
-    this.retrieves(desiredResource);
+  protected willExchange<T extends ResourceName, U extends ResourceName>(resource: T, desiredResource: U): void {
+    this.willDeliver(resource);
+    this.willRetrieve(desiredResource);
   }
 
   protected mustHave<T extends ResourceName>(this: this, resource: T): void {
@@ -61,19 +61,15 @@ export class Action {
     this.before[toPredicate(resource)] = false;
   }
 
-  protected gains<T extends ResourceName>(this: this, resource: T): void {
+  protected willGain<T extends ResourceName>(this: this, resource: T): void {
     this.after[toPredicate(resource)] = true;
   }
 
-  protected loses<T extends ResourceName>(this: this, resource: T): void {
+  protected willLose<T extends ResourceName>(this: this, resource: T): void {
     this.after[toPredicate(resource)] = false;
   }
 
-  execute(this: this): void {
-    console.warn(`${this.name}: You might want to override execute for me :P`);
-  }
-
   canExecute(this: this): boolean {
-    return arePreconditionsMet(this.agent, this);
+    return canExecute(this.agent, this);
   }
 }

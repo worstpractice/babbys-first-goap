@@ -2,7 +2,7 @@ import type { Action } from 'src/actions/Action';
 import type { Goal } from 'src/typings/Fact';
 import type { GraphNode } from 'src/typings/GraphNode';
 import type { Facts } from 'src/typings/tables/Facts';
-import { arePreconditionsMet } from 'src/utils/arePreconditionsMet';
+import { canExecute } from 'src/utils/arePreconditionsMet';
 import { exclude } from 'src/utils/filtering/exclude';
 import { byCostDescending } from 'src/utils/sorting/byCostDescending';
 
@@ -29,7 +29,7 @@ const pathfind = (parent: GraphNode, actions: readonly Action[], goal: Goal): Gr
   const leaves: GraphNode[] = [];
 
   for (const action of actions) {
-    if (!arePreconditionsMet(parent, action)) continue;
+    if (!canExecute(parent, action)) continue;
 
     const currentFacts: Facts = { ...parent.facts, ...action.after };
 

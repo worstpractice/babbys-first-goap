@@ -5,8 +5,6 @@ import { AGENT_NAMES } from 'src/constants/AGENT_NAMES';
 import { IMAGE_NAMES } from 'src/constants/IMAGE_NAMES';
 import { PRELOAD_NAMES } from 'src/constants/PRELOAD_NAMES';
 import { STATION_NAMES } from 'src/constants/STATION_NAMES';
-import { TEXT_NAMES } from 'src/constants/TEXT_NAMES';
-import { storedQuantities } from 'src/data/storedQuantities';
 import { startingActions } from 'src/starting/startingActions';
 import { startingGoals } from 'src/starting/startingGoals';
 import { startingPositions } from 'src/starting/startingPositions';
@@ -28,7 +26,7 @@ export class World extends Phaser.Scene {
 
   private readonly stations = {} as Table<StationName, Station>;
 
-  private readonly planningCooldownInMs = 10_000 as const;
+  private readonly planningCooldownInMs = 1000 as const;
 
   constructor() {
     super(toSnakeCase(new.target.name));
@@ -48,13 +46,11 @@ export class World extends Phaser.Scene {
     this.spawnImages();
     this.spawnAgents();
     this.spawnStations();
-    this.spawnText();
     this.spawnPlans();
   }
 
   update(this: this): void {
     this.updateAgents();
-    this.updateTexts();
   }
 
   private spawnPlans(this: this): void {
@@ -76,12 +72,6 @@ export class World extends Phaser.Scene {
   private updateAgents(this: this): void {
     for (const name of AGENT_NAMES) {
       this.agents[name].update();
-    }
-  }
-
-  private updateTexts(this: this): void {
-    for (const name of TEXT_NAMES) {
-      this.texts[name].setText(`${name}: ${storedQuantities[name]}`);
     }
   }
 
@@ -124,18 +114,6 @@ export class World extends Phaser.Scene {
         },
         initialGoal: startingGoals[name],
         name,
-      });
-    }
-  }
-
-  private spawnText(this: this): void {
-    let y = -35;
-
-    for (const name of TEXT_NAMES) {
-      this.texts[name] = this.add.text(5, (y += 35), `${name}: ${storedQuantities.ore}`, {
-        color: 'black',
-        fontFamily: 'Arial',
-        fontSize: '25pt',
       });
     }
   }

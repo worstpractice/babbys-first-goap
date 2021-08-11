@@ -7,15 +7,15 @@ export class MineOre extends Action {
     super(props);
 
     this.mustHave('pickaxe');
-    this.retrieves('ore');
+    this.willRetrieve('ore');
   }
 
   execute(this: this): void {
-    console.count(`${this.agent.name}: ${this.constructor.name}`);
+    console.count(`🔨 ${this.agent.name} -> ${this.name}`);
 
     if (coinFlip()) return;
 
-    console.log('Tool broke while mining :(');
+    console.count(`🤷 ${this.agent.name} -> pickaxe broke`);
 
     this.agent.loses('pickaxe');
   }

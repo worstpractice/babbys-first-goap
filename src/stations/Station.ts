@@ -24,5 +24,6 @@ export class Station {
     this.facts = initialFacts;
     this.name = name;
     this.position = position;
+    console.log(this);
   }
 }

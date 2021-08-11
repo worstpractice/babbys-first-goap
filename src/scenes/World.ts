@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { Agent } from '../ai/Agent';
 import { AGENT_NAMES } from '../constants/AGENT_NAMES';
 import { IMAGE_NAMES } from '../constants/IMAGE_NAMES';
-import { KEY_PATH_PAIRS } from '../constants/KEY_PATH_PAIRS';
+import { PRELOAD_NAMES } from '../constants/PRELOAD_NAMES';
 import { TEXT_NAMES } from '../constants/TEXT_NAMES';
 import { storedQuantities } from '../data/storedQuantities';
 import { startingActions } from '../starting/startingActions';
@@ -15,6 +15,7 @@ import type { ImageName } from '../typings/ImageName';
 import type { Table } from '../typings/Table';
 import type { TextName } from '../typings/TextName';
 import { createGrid } from '../utils/createGrid';
+import { toSnakeCase } from '../utils/mapping/toSnakeCase';
 
 export class World extends Phaser.Scene {
   private readonly agents = {} as Table<AgentName, Agent>;
@@ -26,12 +27,15 @@ export class World extends Phaser.Scene {
   private readonly planningCooldownInMs = 10_000 as const;
 
   constructor() {
-    super(new.target.name.toLowerCase());
+    super(toSnakeCase(new.target.name));
   }
 
   preload(this: this): void {
-    for (const [key, path] of KEY_PATH_PAIRS) {
-      this.load.image(key, path);
+    for (const name of PRELOAD_NAMES) {
+      this.load.image({
+        key: name,
+        url: `../assets/${name}.png` as const,
+      });
     }
   }
 

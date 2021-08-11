@@ -12,7 +12,7 @@ import { toPredicate } from '../utils/mapping/toPredicate';
 import { distanceBetween } from '../utils/shims/distanceBetween';
 import { makePlan } from './makePlan';
 
-type AgentProps = {
+export type AgentProps = {
   readonly derivedActions: readonly LazyAction[];
   readonly image: GameObjects.Image;
   readonly initialGoal: Goal;

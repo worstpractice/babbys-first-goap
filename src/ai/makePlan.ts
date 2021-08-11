@@ -1,28 +1,33 @@
 import type { Action } from 'src/actions/Action';
-import type { Goal } from 'src/typings/Fact';
 import type { GraphNode } from 'src/typings/GraphNode';
-import type { Facts } from 'src/typings/tables/Facts';
-import { canExecute } from 'src/utils/arePreconditionsMet';
+import type { ResourceName } from 'src/typings/names/ResourceName';
+import { arePreconditionsMetBy } from 'src/utils/arePreconditionsMetBy';
 import { exclude } from 'src/utils/filtering/exclude';
 import { byCostDescending } from 'src/utils/sorting/byCostDescending';
 
-const warn = (reason: string, actions: readonly Action[], facts: Facts, goal: Goal): void => {
+const warn = (reason: string, actions: readonly Action[], facts: Set<ResourceName>, goal: ResourceName): void => {
   console.group();
   console.warn(reason);
-  console.warn(`Goal "${goal.name}: ${goal.value}" is unreachable!`);
+  console.warn(`Goal "${goal}" is unreachable!`);
   console.warn('Current facts', facts);
   console.warn('Available actions', actions);
   console.groupEnd();
   debugger; // eslint-disable-line no-debugger
 };
 
-const pathfind = (parent: GraphNode, actions: readonly Action[], goal: Goal): GraphNode[] => {
+const pathfind = (parent: GraphNode, actions: readonly Action[], goal: ResourceName): GraphNode[] => {
   const leaves: GraphNode[] = [];
 
   for (const action of actions) {
-    if (!canExecute(parent, action)) continue;
+    if (!arePreconditionsMetBy(parent, action)) continue;
 
-    const currentFacts: Facts = { ...parent.facts, ...action.after };
+    const { gains, loses } = action.after;
+
+    const currentFacts: Set<ResourceName> = new Set<ResourceName>([...parent.facts, ...gains] as const);
+
+    for (const lost of loses) {
+      currentFacts.delete(lost);
+    }
 
     const node: GraphNode = {
       action,
@@ -31,7 +36,7 @@ const pathfind = (parent: GraphNode, actions: readonly Action[], goal: Goal): Gr
       parent,
     } as const;
 
-    const meetsGoal = currentFacts[goal.name] === goal.value;
+    const meetsGoal = currentFacts.has(goal);
 
     if (meetsGoal) {
       leaves.push(node);
@@ -67,7 +72,7 @@ const traverseGraph = (path: GraphNode[]): Action[] => {
 /////////////////////////////////////////////////////////////////////////////////////////////
 // * Public *
 /////////////////////////////////////////////////////////////////////////////////////////////
-export const makePlan = (actions: readonly Action[], facts: Facts, goal: Goal): readonly Action[] => {
+export const makePlan = (actions: readonly Action[], facts: Set<ResourceName>, goal: ResourceName): readonly Action[] => {
   const root: GraphNode = {
     action: null,
     cost: 0,

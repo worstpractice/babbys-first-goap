@@ -7,8 +7,4 @@ export class RetrieveOre extends Action {
 
     this.willRetrieve('ore');
   }
-
-  execute(this: this): void {
-    console.count(`🔨 ${this.agent.name} -> ${this.name}`);
-  }
 }

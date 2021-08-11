@@ -7,8 +7,4 @@ export class ForgePickaxe extends Action {
 
     this.willExchange('ore', 'pickaxe');
   }
-
-  execute(this: this): void {
-    console.count(`🔨 ${this.agent.name} -> ${this.name}`);
-  }
 }

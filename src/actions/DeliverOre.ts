@@ -7,8 +7,4 @@ export class DeliverOre extends Action {
 
     this.willDeliver('ore');
   }
-
-  execute(this: this): void {
-    console.count(`🔨 ${this.agent.name} -> ${this.name}`);
-  }
 }

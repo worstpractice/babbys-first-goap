@@ -90,10 +90,6 @@ export class World extends Phaser.Scene {
     for (const name of STATION_NAMES) {
       this.stations[name] = new Station({
         image: this.images[name],
-        initialFacts: {
-          has_ore: false,
-          has_pickaxe: false,
-        },
         name,
         position: startingPositions[name],
       });
@@ -105,10 +101,6 @@ export class World extends Phaser.Scene {
       this.agents[name] = new Agent({
         derivedActions: startingActions[name],
         image: this.images[name],
-        initialFacts: {
-          has_ore: true,
-          has_pickaxe: true,
-        },
         initialGoal: startingGoals[name],
         name,
       });

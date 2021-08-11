@@ -1,23 +1,20 @@
 import type { GameObjects } from 'phaser';
 import type { Action } from 'src/actions/Action';
 import { makePlan } from 'src/ai/makePlan';
-import type { Goal } from 'src/typings/Fact';
 import type { LazyAction } from 'src/typings/LazyAction';
 import type { AgentName } from 'src/typings/names/AgentName';
 import type { FiniteStateName } from 'src/typings/names/FiniteStateName';
+import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
-import type { Facts } from 'src/typings/tables/Facts';
-import { canExecute } from 'src/utils/arePreconditionsMet';
+import { arePreconditionsMetBy } from 'src/utils/arePreconditionsMetBy';
 import { counted } from 'src/utils/counted';
 import { boundToAction } from 'src/utils/mapping/boundToAction';
-import { toResourceName } from 'src/utils/mapping/toResourceName';
 import { distanceBetween } from 'src/utils/shims/distanceBetween';
 
 type Props = {
   readonly derivedActions: readonly LazyAction[];
   readonly image: GameObjects.Image;
-  readonly initialGoal: Goal;
-  readonly initialFacts: Facts;
+  readonly initialGoal: ResourceName;
   readonly name: AgentName;
 };
 
@@ -27,10 +24,9 @@ export class Agent {
   ////////////////////////////////////////////////////////////////////////////////////
   readonly name: AgentName;
 
-  constructor({ derivedActions, image, initialFacts, initialGoal, name }: Props) {
+  constructor({ derivedActions, image, initialGoal, name }: Props) {
     this.availableActions = derivedActions.map(boundToAction(this)) as readonly Action[];
     this.image = image;
-    this.facts = initialFacts;
     this.goal = initialGoal;
     this.name = name;
   }
@@ -50,6 +46,8 @@ export class Agent {
   ////////////////////////////////////////////////////////////////////////////////////
 
   private state = this.idling;
+
+  private readonly costInMs = 500; // 1 cost = 0.5s;
 
   private isWaiting = false;
 
@@ -77,9 +75,9 @@ export class Agent {
     };
 
     const kickOffTimer = (): void => {
-      const costInMs = nextAction.cost * 500; // 1 cost = 0.5s;
+      const delay = nextAction.cost * this.costInMs;
 
-      window.setTimeout(performAction, costInMs);
+      window.setTimeout(performAction, delay);
     };
 
     window.setTimeout(kickOffTimer);
@@ -104,7 +102,7 @@ export class Agent {
   private readonly image: GameObjects.Image;
 
   private get target(): Position | null {
-    return this.plan.at(-1)?.position ?? null;
+    return this.plan.at(-1)?.target ?? null;
   }
 
   private moveToTarget(this: this): boolean {
@@ -132,7 +130,7 @@ export class Agent {
   }
 
   private attempt(this: this, action: Action): void {
-    if (!canExecute(this, action)) return this.makePlan();
+    if (!arePreconditionsMetBy(this, action)) return this.makePlan();
 
     this.execute(action);
   }
@@ -140,19 +138,18 @@ export class Agent {
   private execute(this: this, { after, name }: Action): void {
     console.groupCollapsed(counted(`🏁 ${this.name} -> ${name}`));
 
-    const filtered = Object.entries(after).filter(([_, value]) => {
-      return value !== undefined;
-    }) as (readonly ['has_ore' | 'has_pickaxe', boolean])[];
+    const { gains, loses } = after;
 
-    console.log(filtered);
+    for (const gained of gains) {
+      this.facts.add(gained);
 
-    for (const [name, value] of filtered) {
-      this.facts[name] = value;
+      console.log(`🏆 gained: ${gained}`);
+    }
 
-      const emoji = value ? `🏆` : `💸`;
-      const outcome = value ? 'gained' : 'lost';
+    for (const lost of loses) {
+      this.facts.delete(lost);
 
-      console.log(`${emoji} ${outcome}: ${toResourceName(name)}`);
+      console.log(`💸 lost: ${lost}`);
     }
 
     console.groupEnd();
@@ -164,9 +161,9 @@ export class Agent {
 
   readonly availableActions: readonly Action[];
 
-  facts: Facts;
+  facts: Set<ResourceName> = new Set<ResourceName>();
 
-  goal: Goal;
+  goal: ResourceName;
 
   plan: Action[] = [];
 

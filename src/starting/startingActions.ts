@@ -16,21 +16,21 @@ export const startingActions: Table<AgentName, readonly LazyAction[]> = {
       DeliverPickaxe,
       {
         cost: 1,
-        position: startingPositions.pickaxe_deposit,
+        target: startingPositions.pickaxe_deposit,
       },
     ],
     [
       ForgePickaxe,
       {
         cost: 4,
-        position: startingPositions.forge,
+        target: startingPositions.forge,
       },
     ],
     [
       RetrieveOre,
       {
         cost: 1,
-        position: startingPositions.ore_deposit,
+        target: startingPositions.ore_deposit,
       },
     ],
   ],
@@ -41,21 +41,21 @@ export const startingActions: Table<AgentName, readonly LazyAction[]> = {
       DeliverOre,
       {
         cost: 1,
-        position: startingPositions.ore_deposit,
+        target: startingPositions.ore_deposit,
       },
     ],
     [
       MineOre,
       {
         cost: 4,
-        position: startingPositions.vein,
+        target: startingPositions.vein,
       },
     ],
     [
       RetrievePickaxe,
       {
         cost: 1,
-        position: startingPositions.pickaxe_deposit,
+        target: startingPositions.pickaxe_deposit,
       },
     ],
   ],

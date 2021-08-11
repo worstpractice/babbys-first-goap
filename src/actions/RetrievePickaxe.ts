@@ -7,8 +7,4 @@ export class RetrievePickaxe extends Action {
 
     this.willRetrieve('pickaxe');
   }
-
-  execute(this: this): void {
-    console.count(`🔨 ${this.agent.name} -> ${this.name}`);
-  }
 }

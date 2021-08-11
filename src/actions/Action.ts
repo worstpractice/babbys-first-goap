@@ -1,39 +1,41 @@
 import type { Agent } from 'src/ai/Agent';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
-import type { Facts } from 'src/typings/tables/Facts';
-import { canExecute } from 'src/utils/arePreconditionsMet';
-import { toPredicate } from 'src/utils/mapping/toPredicate';
 import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
 
 export type ActionProps = {
   readonly agent: Agent;
   readonly cost: number;
-  readonly position: Position;
+  readonly target: Position;
 };
+
+// Action should really have a concept of doer/performer (of action) & target (of action)
 
 export class Action {
   readonly cost: number;
 
   readonly name: string;
 
-  protected readonly agent: Agent;
+  readonly target: Position;// should really be over at `Station.position`
 
-  readonly before: Partial<Facts> = {};
+  readonly before = {
+    has: new Set<ResourceName>(),
+    lacks: new Set<ResourceName>(),
+  };
 
-  readonly after: Partial<Facts> = {};
+  readonly after = {
+    gains: new Set<ResourceName>(),
+    loses: new Set<ResourceName>(),
+  };
 
-  readonly position: Position;
-
-  constructor({ agent, cost, position }: ActionProps) {
+  constructor({ cost, target }: ActionProps) {
     this.cost = cost;
     this.name = toSnakeCase(new.target.name);
-    this.position = position;
-    this.agent = agent;
+    this.target = target;
   }
 
   protected willRetrieve<T extends ResourceName>(resource: T): void {
-    this.cannotHave(resource);
+    this.mustLack(resource);
     this.willGain(resource);
   }
 
@@ -48,22 +50,18 @@ export class Action {
   }
 
   protected mustHave<T extends ResourceName>(this: this, resource: T): void {
-    this.before[toPredicate(resource)] = true;
+    this.before.has.add(resource);
   }
 
-  protected cannotHave<T extends ResourceName>(this: this, resource: T): void {
-    this.before[toPredicate(resource)] = false;
+  protected mustLack<T extends ResourceName>(this: this, resource: T): void {
+    this.before.lacks.add(resource);
   }
 
   protected willGain<T extends ResourceName>(this: this, resource: T): void {
-    this.after[toPredicate(resource)] = true;
+    this.after.gains.add(resource);
   }
 
   protected willLose<T extends ResourceName>(this: this, resource: T): void {
-    this.after[toPredicate(resource)] = false;
-  }
-
-  canExecute(this: this): boolean {
-    return canExecute(this.agent, this);
+    this.after.loses.add(resource);
   }
 }

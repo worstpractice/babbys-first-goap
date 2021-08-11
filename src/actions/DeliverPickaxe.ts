@@ -7,8 +7,4 @@ export class DeliverPickaxe extends Action {
 
     this.willDeliver('pickaxe');
   }
-
-  execute(this: this): void {
-    console.count(`🔨 ${this.agent.name} -> ${this.name}`);
-  }
 }

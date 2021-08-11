@@ -65,8 +65,8 @@ export class Agent {
     return this.facts[toPredicate(name)];
   }
 
-  transitionTo(this: this, to: FiniteStateName): void {
-    this.stateMachine.transitionTo(to);
+  transitionTo(this: this, name: FiniteStateName): void {
+    this.stateMachine.transitionTo(name);
   }
 
   proceedWithPlan(this: this): Action | null {

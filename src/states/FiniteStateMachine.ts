@@ -21,8 +21,8 @@ export class FiniteStateMachine {
     this.currentState = this.idling;
   }
 
-  transitionTo(this: this, nextState: FiniteStateName): void {
-    this.currentState = this[nextState];
+  transitionTo(this: this, name: FiniteStateName): void {
+    this.currentState = this[name];
   }
 
   update(this: this): void {

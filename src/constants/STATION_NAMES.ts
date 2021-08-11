@@ -1,4 +1,4 @@
-export const DOODAD_NAMES = [
+export const STATION_NAMES = [
   //
   'forge',
   'ore_deposit',

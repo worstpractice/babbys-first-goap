@@ -1,7 +1,8 @@
-import type { PRELOAD_NAMES } from '../constants/PRELOAD_NAMES';
+import type { AgentName } from '../typings/names/AgentName';
+import type { StationName } from '../typings/names/StationName';
 import type { Position } from '../typings/Position';
 
-export const startingPositions: { readonly [key in Exclude<typeof PRELOAD_NAMES[number], 'grass'>]: Position } = {
+export const startingPositions: { readonly [key in AgentName | StationName]: Position } = {
   blacksmith: {
     x: 300,
     y: 200,

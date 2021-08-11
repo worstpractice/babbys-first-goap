@@ -1,22 +1,22 @@
+import type { Action } from 'actions/Action';
+import { makePlan } from 'ai/makePlan';
 import type { GameObjects } from 'phaser';
-import type { Action } from '../actions/Action';
-import { FiniteStateMachine } from '../states/FiniteStateMachine';
-import type { AgentName } from '../typings/AgentName';
-import type { Goal } from '../typings/Fact';
-import type { FiniteStateName } from '../typings/FiniteStateName';
-import type { LazyAction } from '../typings/LazyAction';
-import type { Position } from '../typings/Position';
-import type { ResourceName } from '../typings/ResourceName';
-import type { Facts } from '../typings/tables/Facts';
-import { toPredicate } from '../utils/mapping/toPredicate';
-import { distanceBetween } from '../utils/shims/distanceBetween';
-import { makePlan } from './makePlan';
+import { FiniteStateMachine } from 'states/FiniteStateMachine';
+import type { Goal } from 'typings/Fact';
+import type { LazyAction } from 'typings/LazyAction';
+import type { AgentName } from 'typings/names/AgentName';
+import type { FiniteStateName } from 'typings/names/FiniteStateName';
+import type { ResourceName } from 'typings/names/ResourceName';
+import type { Position } from 'typings/Position';
+import type { Facts } from 'typings/tables/Facts';
+import { toPredicate } from 'utils/mapping/toPredicate';
+import { distanceBetween } from 'utils/shims/distanceBetween';
 
 export type AgentProps = {
   readonly derivedActions: readonly LazyAction[];
   readonly image: GameObjects.Image;
   readonly initialGoal: Goal;
-  readonly initialState: Facts;
+  readonly initialFacts: Facts;
   readonly name: AgentName;
 };
 
@@ -39,10 +39,10 @@ export class Agent {
     return this.plan.at(-1)?.position ?? null;
   }
 
-  constructor({ derivedActions, image, initialGoal, initialState, name }: AgentProps) {
+  constructor({ derivedActions, image, initialFacts, initialGoal, name }: AgentProps) {
     this.availableActions = derivedActions.map(this.toAction) as readonly Action[];
     this.image = image;
-    this.facts = initialState;
+    this.facts = initialFacts;
     this.goal = initialGoal;
     this.name = name;
   }

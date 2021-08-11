@@ -1,3 +1,5 @@
+import type { AgentName } from 'typings/names/AgentName';
+import type { Table } from 'typings/Table';
 import { DeliverOre } from '../actions/DeliverOre';
 import { DeliverPickaxe } from '../actions/DeliverPickaxe';
 import { ForgePickaxe } from '../actions/ForgePickaxe';
@@ -5,10 +7,9 @@ import { MineOre } from '../actions/MineOre';
 import { RetrieveOre } from '../actions/RetrieveOre';
 import { RetrievePickaxe } from '../actions/RetrievePickaxe';
 import type { LazyAction } from '../typings/LazyAction';
-import type { Personal } from '../typings/Personal';
 import { startingPositions } from './startingPositions';
 
-export const startingActions: Personal<readonly LazyAction[]> = {
+export const startingActions: Table<AgentName, readonly LazyAction[]> = {
   blacksmith: [
     //
     [

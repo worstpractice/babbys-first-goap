@@ -1,6 +1,6 @@
 import type { Agent } from '../ai/Agent';
 import type { FiniteState } from '../typings/FiniteState';
-import type { FiniteStateName } from '../typings/FiniteStateName';
+import type { FiniteStateName } from '../typings/names/FiniteStateName';
 import { Idling } from './Idling';
 import { Interacting } from './Interacting';
 import { Moving } from './Moving';

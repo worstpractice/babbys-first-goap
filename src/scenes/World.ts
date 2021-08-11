@@ -4,16 +4,18 @@ import { Agent } from '../ai/Agent';
 import { AGENT_NAMES } from '../constants/AGENT_NAMES';
 import { IMAGE_NAMES } from '../constants/IMAGE_NAMES';
 import { PRELOAD_NAMES } from '../constants/PRELOAD_NAMES';
+import { STATION_NAMES } from '../constants/STATION_NAMES';
 import { TEXT_NAMES } from '../constants/TEXT_NAMES';
 import { storedQuantities } from '../data/storedQuantities';
 import { startingActions } from '../starting/startingActions';
-import { startingFacts } from '../starting/startingFacts';
 import { startingGoals } from '../starting/startingGoals';
 import { startingPositions } from '../starting/startingPositions';
-import type { AgentName } from '../typings/AgentName';
-import type { ImageName } from '../typings/ImageName';
+import { Station } from '../stations/Station';
+import type { AgentName } from '../typings/names/AgentName';
+import type { ImageName } from '../typings/names/ImageName';
+import type { StationName } from '../typings/names/StationName';
+import type { TextName } from '../typings/names/TextName';
 import type { Table } from '../typings/Table';
-import type { TextName } from '../typings/TextName';
 import { createGrid } from '../utils/createGrid';
 import { toSnakeCase } from '../utils/mapping/toSnakeCase';
 
@@ -23,6 +25,8 @@ export class World extends Phaser.Scene {
   private readonly texts = {} as Table<TextName, GameObjects.Text>;
 
   private readonly images = {} as Table<ImageName, GameObjects.Image>;
+
+  private readonly stations = {} as Table<StationName, Station>;
 
   private readonly planningCooldownInMs = 10_000 as const;
 
@@ -94,13 +98,30 @@ export class World extends Phaser.Scene {
     }
   }
 
+  private spawnStations(this: this): void {
+    for (const name of STATION_NAMES) {
+      this.stations[name] = new Station({
+        image: this.images[name],
+        initialFacts: {
+          has_ore: false,
+          has_pickaxe: false,
+        },
+        name,
+        position: startingPositions[name],
+      });
+    }
+  }
+
   private spawnAgents(this: this): void {
     for (const name of AGENT_NAMES) {
       this.agents[name] = new Agent({
         derivedActions: startingActions[name],
         image: this.images[name],
+        initialFacts: {
+          has_ore: false,
+          has_pickaxe: false,
+        },
         initialGoal: startingGoals[name],
-        initialState: startingFacts[name],
         name,
       });
     }

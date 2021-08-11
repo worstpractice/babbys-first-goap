@@ -1,6 +1,6 @@
 import type { Agent } from '../ai/Agent';
+import type { ResourceName } from '../typings/names/ResourceName';
 import type { Position } from '../typings/Position';
-import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
 import { arePreconditionsMet } from '../utils/arePreconditionsMet';
 import { toPredicate } from '../utils/mapping/toPredicate';

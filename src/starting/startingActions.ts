@@ -33,6 +33,7 @@ export const startingActions: Personal<readonly LazyAction[]> = {
       },
     ],
   ],
+
   miner: [
     //
     [
@@ -46,7 +47,7 @@ export const startingActions: Personal<readonly LazyAction[]> = {
       MineOre,
       {
         cost: 4,
-        position: startingPositions.ore,
+        position: startingPositions.vein,
       },
     ],
     [

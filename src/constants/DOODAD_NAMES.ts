@@ -2,6 +2,6 @@ export const DOODAD_NAMES = [
   //
   'forge',
   'ore_deposit',
-  'ore',
   'pickaxe_deposit',
+  'vein',
 ] as const;

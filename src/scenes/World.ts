@@ -12,15 +12,12 @@ import { Station } from 'src/stations/Station';
 import type { AgentName } from 'src/typings/names/AgentName';
 import type { ImageName } from 'src/typings/names/ImageName';
 import type { StationName } from 'src/typings/names/StationName';
-import type { TextName } from 'src/typings/names/TextName';
 import type { Table } from 'src/typings/Table';
 import { createGrid } from 'src/utils/createGrid';
 import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
 
 export class World extends Phaser.Scene {
   private readonly agents = {} as Table<AgentName, Agent>;
-
-  private readonly texts = {} as Table<TextName, GameObjects.Text>;
 
   private readonly images = {} as Table<ImageName, GameObjects.Image>;
 

@@ -1,16 +1,16 @@
-import type { Action } from 'actions/Action';
-import { makePlan } from 'ai/makePlan';
 import type { GameObjects } from 'phaser';
-import { FiniteStateMachine } from 'states/FiniteStateMachine';
-import type { Goal } from 'typings/Fact';
-import type { LazyAction } from 'typings/LazyAction';
-import type { AgentName } from 'typings/names/AgentName';
-import type { FiniteStateName } from 'typings/names/FiniteStateName';
-import type { ResourceName } from 'typings/names/ResourceName';
-import type { Position } from 'typings/Position';
-import type { Facts } from 'typings/tables/Facts';
-import { toPredicate } from 'utils/mapping/toPredicate';
-import { distanceBetween } from 'utils/shims/distanceBetween';
+import type { Action } from 'src/actions/Action';
+import { makePlan } from 'src/ai/makePlan';
+import { FiniteStateMachine } from 'src/states/FiniteStateMachine';
+import type { Goal } from 'src/typings/Fact';
+import type { LazyAction } from 'src/typings/LazyAction';
+import type { AgentName } from 'src/typings/names/AgentName';
+import type { FiniteStateName } from 'src/typings/names/FiniteStateName';
+import type { ResourceName } from 'src/typings/names/ResourceName';
+import type { Position } from 'src/typings/Position';
+import type { Facts } from 'src/typings/tables/Facts';
+import { toPredicate } from 'src/utils/mapping/toPredicate';
+import { distanceBetween } from 'src/utils/shims/distanceBetween';
 
 export type AgentProps = {
   readonly derivedActions: readonly LazyAction[];

@@ -1,6 +1,6 @@
-import { coinFlip } from '../utils/coinFlip';
-import type { ActionProps } from './Action';
-import { Action } from './Action';
+import type { ActionProps } from 'src/actions/Action';
+import { Action } from 'src/actions/Action';
+import { coinFlip } from 'src/utils/coinFlip';
 
 export class MineOre extends Action {
   constructor(props: ActionProps) {

@@ -1,5 +1,5 @@
-import type { Agent } from '../ai/Agent';
-import type { FiniteState } from '../typings/FiniteState';
+import type { Agent } from 'src/ai/Agent';
+import type { FiniteState } from 'src/typings/FiniteState';
 
 export class Interacting implements FiniteState {
   private isWaiting = false;

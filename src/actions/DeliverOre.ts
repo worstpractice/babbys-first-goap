@@ -1,6 +1,6 @@
-import { storedQuantities } from '../data/storedQuantities';
-import type { ActionProps } from './Action';
-import { Action } from './Action';
+import type { ActionProps } from 'src/actions/Action';
+import { Action } from 'src/actions/Action';
+import { storedQuantities } from 'src/data/storedQuantities';
 
 export class DeliverOre extends Action {
   constructor(props: ActionProps) {

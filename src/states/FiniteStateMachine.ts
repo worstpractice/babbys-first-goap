@@ -1,9 +1,9 @@
-import type { Agent } from '../ai/Agent';
-import type { FiniteState } from '../typings/FiniteState';
-import type { FiniteStateName } from '../typings/names/FiniteStateName';
-import { Idling } from './Idling';
-import { Interacting } from './Interacting';
-import { Moving } from './Moving';
+import type { Agent } from 'src/ai/Agent';
+import { Idling } from 'src/states/Idling';
+import { Interacting } from 'src/states/Interacting';
+import { Moving } from 'src/states/Moving';
+import type { FiniteState } from 'src/typings/FiniteState';
+import type { FiniteStateName } from 'src/typings/names/FiniteStateName';
 
 export class FiniteStateMachine {
   private readonly agent: Agent;

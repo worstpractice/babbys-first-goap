@@ -1,23 +1,23 @@
 import type { GameObjects } from 'phaser';
 import Phaser from 'phaser';
-import { Agent } from '../ai/Agent';
-import { AGENT_NAMES } from '../constants/AGENT_NAMES';
-import { IMAGE_NAMES } from '../constants/IMAGE_NAMES';
-import { PRELOAD_NAMES } from '../constants/PRELOAD_NAMES';
-import { STATION_NAMES } from '../constants/STATION_NAMES';
-import { TEXT_NAMES } from '../constants/TEXT_NAMES';
-import { storedQuantities } from '../data/storedQuantities';
-import { startingActions } from '../starting/startingActions';
-import { startingGoals } from '../starting/startingGoals';
-import { startingPositions } from '../starting/startingPositions';
-import { Station } from '../stations/Station';
-import type { AgentName } from '../typings/names/AgentName';
-import type { ImageName } from '../typings/names/ImageName';
-import type { StationName } from '../typings/names/StationName';
-import type { TextName } from '../typings/names/TextName';
-import type { Table } from '../typings/Table';
-import { createGrid } from '../utils/createGrid';
-import { toSnakeCase } from '../utils/mapping/toSnakeCase';
+import { Agent } from 'src/ai/Agent';
+import { AGENT_NAMES } from 'src/constants/AGENT_NAMES';
+import { IMAGE_NAMES } from 'src/constants/IMAGE_NAMES';
+import { PRELOAD_NAMES } from 'src/constants/PRELOAD_NAMES';
+import { STATION_NAMES } from 'src/constants/STATION_NAMES';
+import { TEXT_NAMES } from 'src/constants/TEXT_NAMES';
+import { storedQuantities } from 'src/data/storedQuantities';
+import { startingActions } from 'src/starting/startingActions';
+import { startingGoals } from 'src/starting/startingGoals';
+import { startingPositions } from 'src/starting/startingPositions';
+import { Station } from 'src/stations/Station';
+import type { AgentName } from 'src/typings/names/AgentName';
+import type { ImageName } from 'src/typings/names/ImageName';
+import type { StationName } from 'src/typings/names/StationName';
+import type { TextName } from 'src/typings/names/TextName';
+import type { Table } from 'src/typings/Table';
+import { createGrid } from 'src/utils/createGrid';
+import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
 
 export class World extends Phaser.Scene {
   private readonly agents = {} as Table<AgentName, Agent>;
@@ -47,6 +47,7 @@ export class World extends Phaser.Scene {
     this.spawnGrass();
     this.spawnImages();
     this.spawnAgents();
+    this.spawnStations();
     this.spawnText();
     this.spawnPlans();
   }

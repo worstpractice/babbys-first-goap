@@ -1,7 +1,7 @@
 import type { GameObjects } from 'phaser';
-import type { StationName } from '../typings/names/StationName';
-import type { Position } from '../typings/Position';
-import type { Facts } from '../typings/tables/Facts';
+import type { StationName } from 'src/typings/names/StationName';
+import type { Position } from 'src/typings/Position';
+import type { Facts } from 'src/typings/tables/Facts';
 
 export type StationProps = {
   readonly image: GameObjects.Image;

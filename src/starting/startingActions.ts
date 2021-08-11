@@ -1,13 +1,13 @@
-import type { AgentName } from 'typings/names/AgentName';
-import type { Table } from 'typings/Table';
-import { DeliverOre } from '../actions/DeliverOre';
-import { DeliverPickaxe } from '../actions/DeliverPickaxe';
-import { ForgePickaxe } from '../actions/ForgePickaxe';
-import { MineOre } from '../actions/MineOre';
-import { RetrieveOre } from '../actions/RetrieveOre';
-import { RetrievePickaxe } from '../actions/RetrievePickaxe';
-import type { LazyAction } from '../typings/LazyAction';
-import { startingPositions } from './startingPositions';
+import { DeliverOre } from 'src/actions/DeliverOre';
+import { DeliverPickaxe } from 'src/actions/DeliverPickaxe';
+import { ForgePickaxe } from 'src/actions/ForgePickaxe';
+import { MineOre } from 'src/actions/MineOre';
+import { RetrieveOre } from 'src/actions/RetrieveOre';
+import { RetrievePickaxe } from 'src/actions/RetrievePickaxe';
+import { startingPositions } from 'src/starting/startingPositions';
+import type { LazyAction } from 'src/typings/LazyAction';
+import type { AgentName } from 'src/typings/names/AgentName';
+import type { Table } from 'src/typings/Table';
 
 export const startingActions: Table<AgentName, readonly LazyAction[]> = {
   blacksmith: [

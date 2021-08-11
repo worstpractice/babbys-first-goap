@@ -1,6 +1,6 @@
-import type { AgentName } from '../typings/names/AgentName';
-import type { StationName } from '../typings/names/StationName';
-import type { Position } from '../typings/Position';
+import type { AgentName } from 'src/typings/names/AgentName';
+import type { StationName } from 'src/typings/names/StationName';
+import type { Position } from 'src/typings/Position';
 
 export const startingPositions: { readonly [key in AgentName | StationName]: Position } = {
   blacksmith: {

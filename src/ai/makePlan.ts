@@ -1,10 +1,10 @@
-import type { Action } from '../actions/Action';
-import type { Goal } from '../typings/Fact';
-import type { GraphNode } from '../typings/GraphNode';
-import type { Facts } from '../typings/tables/Facts';
-import { arePreconditionsMet } from '../utils/arePreconditionsMet';
-import { exclude } from '../utils/filtering/exclude';
-import { byCostDescending } from '../utils/sorting/mostExpensiveFirst';
+import type { Action } from 'src/actions/Action';
+import type { Goal } from 'src/typings/Fact';
+import type { GraphNode } from 'src/typings/GraphNode';
+import type { Facts } from 'src/typings/tables/Facts';
+import { arePreconditionsMet } from 'src/utils/arePreconditionsMet';
+import { exclude } from 'src/utils/filtering/exclude';
+import { byCostDescending } from 'src/utils/sorting/byCostDescending';
 
 const warn = (reason: string, actions: readonly Action[], facts: Facts, goal: Goal): void => {
   console.group();

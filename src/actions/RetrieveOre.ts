@@ -1,7 +1,7 @@
-import { storedQuantities } from '../data/storedQuantities';
-import { arePreconditionsMet } from '../utils/arePreconditionsMet';
-import type { ActionProps } from './Action';
-import { Action } from './Action';
+import type { ActionProps } from 'src/actions/Action';
+import { Action } from 'src/actions/Action';
+import { storedQuantities } from 'src/data/storedQuantities';
+import { arePreconditionsMet } from 'src/utils/arePreconditionsMet';
 
 export class RetrieveOre extends Action {
   constructor(props: ActionProps) {

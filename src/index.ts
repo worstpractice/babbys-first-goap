@@ -1,6 +1,6 @@
 import 'normalize.css';
 import Phaser from 'phaser';
-import { World } from './scenes/World';
+import { World } from 'src/scenes/World';
 
 const game = new Phaser.Game({
   height: 768,

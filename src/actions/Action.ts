@@ -1,10 +1,10 @@
-import type { Agent } from '../ai/Agent';
-import type { ResourceName } from '../typings/names/ResourceName';
-import type { Position } from '../typings/Position';
-import type { Facts } from '../typings/tables/Facts';
-import { arePreconditionsMet } from '../utils/arePreconditionsMet';
-import { toPredicate } from '../utils/mapping/toPredicate';
-import { toSnakeCase } from '../utils/mapping/toSnakeCase';
+import type { Agent } from 'src/ai/Agent';
+import type { ResourceName } from 'src/typings/names/ResourceName';
+import type { Position } from 'src/typings/Position';
+import type { Facts } from 'src/typings/tables/Facts';
+import { arePreconditionsMet } from 'src/utils/arePreconditionsMet';
+import { toPredicate } from 'src/utils/mapping/toPredicate';
+import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
 
 export type ActionProps = {
   readonly agent: Agent;

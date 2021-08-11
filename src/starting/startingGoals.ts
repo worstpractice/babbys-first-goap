@@ -1,6 +1,6 @@
-import type { AgentName } from 'typings/names/AgentName';
-import type { Table } from 'typings/Table';
-import type { Goal } from '../typings/Fact';
+import type { Goal } from 'src/typings/Fact';
+import type { AgentName } from 'src/typings/names/AgentName';
+import type { Table } from 'src/typings/Table';
 
 export const startingGoals: Table<AgentName, Goal> = {
   blacksmith: {

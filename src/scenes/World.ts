@@ -23,7 +23,7 @@ export class World extends Phaser.Scene {
 
   private readonly images = {} as Table<ImageName, GameObjects.Image>;
 
-  private readonly planningCooldownInMs = 1000;
+  private readonly planningCooldownInMs = 10_000 as const;
 
   constructor() {
     super(new.target.name.toLowerCase());
@@ -103,11 +103,13 @@ export class World extends Phaser.Scene {
   }
 
   private spawnText(this: this): void {
-    let y = -15;
+    let y = -35;
 
     for (const name of TEXT_NAMES) {
-      this.texts[name] = this.add.text(5, (y += 20), `${name}: ${storedQuantities.ore}`, {
-        font: '14pt Helvetica',
+      this.texts[name] = this.add.text(5, (y += 35), `${name}: ${storedQuantities.ore}`, {
+        color: 'black',
+        fontFamily: 'Arial',
+        fontSize: '25pt',
       });
     }
   }

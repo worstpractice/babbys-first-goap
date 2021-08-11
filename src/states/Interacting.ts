@@ -4,11 +4,8 @@ import type { FiniteState } from '../typings/FiniteState';
 export class Interacting implements FiniteState {
   private isWaiting = false;
 
-  private isTimeoutSet = false;
-
   update(this: this, agent: Agent): void {
     if (this.isWaiting) return;
-    if (this.isTimeoutSet) return;
 
     const nextAction = agent.proceedWithPlan();
 
@@ -16,11 +13,8 @@ export class Interacting implements FiniteState {
 
     this.isWaiting = true;
 
-    this.isTimeoutSet = true;
-
     const performAction = (): void => {
       this.isWaiting = false;
-      this.isTimeoutSet = false;
 
       if (nextAction.canExecute()) {
         nextAction.execute();

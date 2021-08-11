@@ -4,7 +4,7 @@ import type { ResourceName } from '../typings/ResourceName';
 import type { Facts } from '../typings/tables/Facts';
 import { arePreconditionsMet } from '../utils/arePreconditionsMet';
 import { toPredicate } from '../utils/mapping/toPredicate';
-import { toSnakeCase } from '../utils/toSnakeCase';
+import { toSnakeCase } from '../utils/mapping/toSnakeCase';
 
 export type ActionProps = {
   readonly agent: Agent;

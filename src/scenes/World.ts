@@ -106,8 +106,8 @@ export class World extends Phaser.Scene {
         derivedActions: startingActions[name],
         image: this.images[name],
         initialFacts: {
-          has_ore: false,
-          has_pickaxe: false,
+          has_ore: true,
+          has_pickaxe: true,
         },
         initialGoal: startingGoals[name],
         name,

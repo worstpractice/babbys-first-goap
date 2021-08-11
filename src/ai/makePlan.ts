@@ -16,15 +16,6 @@ const warn = (reason: string, actions: readonly Action[], facts: Facts, goal: Go
   debugger; // eslint-disable-line no-debugger
 };
 
-const createRootNodeFrom = (facts: Facts): GraphNode => {
-  return {
-    action: null,
-    cost: 0,
-    facts,
-    parent: null,
-  } as const;
-};
-
 const pathfind = (parent: GraphNode, actions: readonly Action[], goal: Goal): GraphNode[] => {
   const leaves: GraphNode[] = [];
 
@@ -77,7 +68,12 @@ const traverseGraph = (path: GraphNode[]): Action[] => {
 // * Public *
 /////////////////////////////////////////////////////////////////////////////////////////////
 export const makePlan = (actions: readonly Action[], facts: Facts, goal: Goal): readonly Action[] => {
-  const root: GraphNode = createRootNodeFrom(facts);
+  const root: GraphNode = {
+    action: null,
+    cost: 0,
+    facts,
+    parent: null,
+  } as const;
 
   const path: GraphNode[] = pathfind(root, actions, goal);
 

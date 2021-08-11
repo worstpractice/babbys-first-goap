@@ -1,21 +1,19 @@
 import type { GameObjects } from 'phaser';
 import type { Action } from 'src/actions/Action';
 import { makePlan } from 'src/ai/makePlan';
-import { FiniteStateMachine } from 'src/states/FiniteStateMachine';
 import type { Goal } from 'src/typings/Fact';
 import type { LazyAction } from 'src/typings/LazyAction';
 import type { AgentName } from 'src/typings/names/AgentName';
 import type { FiniteStateName } from 'src/typings/names/FiniteStateName';
-import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
 import type { Facts } from 'src/typings/tables/Facts';
 import { canExecute } from 'src/utils/arePreconditionsMet';
 import { counted } from 'src/utils/counted';
-import { toPredicate } from 'src/utils/mapping/toPredicate';
+import { boundToAction } from 'src/utils/mapping/boundToAction';
 import { toResourceName } from 'src/utils/mapping/toResourceName';
 import { distanceBetween } from 'src/utils/shims/distanceBetween';
 
-export type AgentProps = {
+type Props = {
   readonly derivedActions: readonly LazyAction[];
   readonly image: GameObjects.Image;
   readonly initialGoal: Goal;
@@ -23,29 +21,14 @@ export type AgentProps = {
   readonly name: AgentName;
 };
 
-const DEBUG = false;
-
 export class Agent {
-  readonly availableActions: readonly Action[];
-
-  facts: Facts;
-
-  goal: Goal;
-
-  readonly image: GameObjects.Image;
-
+  ////////////////////////////////////////////////////////////////////////////////////
+  // * Public *
+  ////////////////////////////////////////////////////////////////////////////////////
   readonly name: AgentName;
 
-  plan: Action[] = [];
-
-  readonly stateMachine = new FiniteStateMachine(this);
-
-  get target(): Position | null {
-    return this.plan.at(-1)?.position ?? null;
-  }
-
-  constructor({ derivedActions, image, initialFacts, initialGoal, name }: AgentProps) {
-    this.availableActions = derivedActions.map(this.toAction) as readonly Action[];
+  constructor({ derivedActions, image, initialFacts, initialGoal, name }: Props) {
+    this.availableActions = derivedActions.map(boundToAction(this)) as readonly Action[];
     this.image = image;
     this.facts = initialFacts;
     this.goal = initialGoal;
@@ -53,27 +36,78 @@ export class Agent {
   }
 
   update(this: this): void {
-    this.stateMachine.update();
+    this.state();
   }
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // * Helper Function *
+  ////////////////////////////////////////////////////////////////////////////////////
 
   /** NOTE: passes `this` to `DerivedAction`. */
-  private readonly toAction = ([DerivedAction, props]: LazyAction): Action => {
-    return new DerivedAction({ ...props, agent: this });
-  };
 
-  has<T extends ResourceName>(this: this, name: T): boolean {
-    return this.facts[toPredicate(name)];
+  ////////////////////////////////////////////////////////////////////////////////////
+  // * State Machine *
+  ////////////////////////////////////////////////////////////////////////////////////
+
+  private state = this.idling;
+
+  private isWaiting = false;
+
+  private idling(this: this): void {
+    if (!this.plan.length) return;
+
+    this.start('moving');
   }
 
-  transitionTo(this: this, name: FiniteStateName): void {
-    this.stateMachine.transitionTo(name);
+  private interacting(this: this): void {
+    if (this.isWaiting) return;
+
+    const nextAction = this.proceedWithPlan();
+
+    if (!nextAction) return;
+
+    this.isWaiting = true;
+
+    const performAction = (): void => {
+      this.isWaiting = false;
+
+      this.attempt(nextAction);
+
+      this.start('idling');
+    };
+
+    const kickOffTimer = (): void => {
+      const costInMs = nextAction.cost * 500; // 1 cost = 0.5s;
+
+      window.setTimeout(performAction, costInMs);
+    };
+
+    window.setTimeout(kickOffTimer);
   }
 
-  proceedWithPlan(this: this): Action | null {
-    return this.plan.pop() ?? null;
+  private moving(this: this): void {
+    const hasArrived = this.moveToTarget();
+
+    if (!hasArrived) return;
+
+    this.start('interacting');
   }
 
-  moveToTarget(this: this): boolean {
+  private start(this: this, name: FiniteStateName): void {
+    this.update = this[name];
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // * Actions *
+  ////////////////////////////////////////////////////////////////////////////////////
+
+  private readonly image: GameObjects.Image;
+
+  private get target(): Position | null {
+    return this.plan.at(-1)?.position ?? null;
+  }
+
+  private moveToTarget(this: this): boolean {
     if (!this.target) return false;
 
     const { x: imageX, y: imageY } = this.image;
@@ -97,14 +131,22 @@ export class Agent {
     return hasArrived;
   }
 
-  attempt(this: this, action: Action): void {
-    canExecute(this, action) ? this.execute(action) : this.makePlan();
+  private attempt(this: this, action: Action): void {
+    if (!canExecute(this, action)) return this.makePlan();
+
+    this.execute(action);
   }
 
-  private execute(this: this, action: Action): void {
-    console.groupCollapsed(counted(`🏁 ${this.name} -> ${action.name}`));
+  private execute(this: this, { after, name }: Action): void {
+    console.groupCollapsed(counted(`🏁 ${this.name} -> ${name}`));
 
-    for (const [name, value] of Object.entries(action.after)) {
+    const filtered = Object.entries(after).filter(([_, value]) => {
+      return value !== undefined;
+    }) as (readonly ['has_ore' | 'has_pickaxe', boolean])[];
+
+    console.log(filtered);
+
+    for (const [name, value] of filtered) {
       this.facts[name] = value;
 
       const emoji = value ? `🏆` : `💸`;
@@ -116,19 +158,29 @@ export class Agent {
     console.groupEnd();
   }
 
-  gains<T extends ResourceName>(this: this, resource: T): void {
-    this.facts[toPredicate(resource)] = true;
-  }
+  ////////////////////////////////////////////////////////////////////////////////////
+  // * Planning *
+  ////////////////////////////////////////////////////////////////////////////////////
 
-  loses<T extends ResourceName>(this: this, resource: T): void {
-    this.facts[toPredicate(resource)] = false;
-  }
+  readonly availableActions: readonly Action[];
+
+  facts: Facts;
+
+  goal: Goal;
+
+  plan: Action[] = [];
 
   makePlan(this: this): void {
-    DEBUG && console.count(`🧠 ${this.name} -> planning`);
+    // console.count(`🧠 ${this.name} -> planning`);
 
     const plan: readonly Action[] = makePlan(this.availableActions, this.facts, this.goal);
 
     this.plan = plan as Action[];
   }
+
+  proceedWithPlan(this: this): Action | null {
+    return this.plan.pop() ?? null;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////
 }

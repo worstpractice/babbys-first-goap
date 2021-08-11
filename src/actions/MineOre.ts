@@ -17,6 +17,6 @@ export class MineOre extends Action {
 
     console.count(`🤷 ${this.agent.name} -> pickaxe broke`);
 
-    this.agent.loses('pickaxe');
+    this.agent.facts.has_pickaxe = false;
   }
 }

@@ -19,15 +19,9 @@ export class Action {
 
   protected readonly agent: Agent;
 
-  readonly before: Facts = {
-    has_ore: false,
-    has_pickaxe: false,
-  };
+  readonly before: Partial<Facts> = {};
 
-  readonly after: Facts = {
-    has_ore: false,
-    has_pickaxe: false,
-  };
+  readonly after: Partial<Facts> = {};
 
   readonly position: Position;
 

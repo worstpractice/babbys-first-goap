@@ -1,5 +1,5 @@
-import type { ActionProps } from 'src/actions/Action';
-import { Action } from 'src/actions/Action';
+import type { ActionProps } from 'src/typings/props/ActionProps';
+import { Action } from 'src/entities/Action';
 
 export class DeliverOre extends Action {
   constructor(props: ActionProps) {

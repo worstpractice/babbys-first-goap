@@ -1,27 +1,29 @@
+import { ObSet } from 'obset';
 import type { GameObjects } from 'phaser';
 import Phaser from 'phaser';
-import { Agent } from 'src/ai/Agent';
 import { AGENT_NAMES } from 'src/constants/AGENT_NAMES';
 import { IMAGE_NAMES } from 'src/constants/IMAGE_NAMES';
 import { PRELOAD_NAMES } from 'src/constants/PRELOAD_NAMES';
-import { STATION_NAMES } from 'src/constants/STATION_NAMES';
+import { Agent } from 'src/entities/Agent';
 import { startingActions } from 'src/starting/startingActions';
 import { startingGoals } from 'src/starting/startingGoals';
 import { startingPositions } from 'src/starting/startingPositions';
-import { Station } from 'src/stations/Station';
-import type { AgentName } from 'src/typings/names/AgentName';
 import type { ImageName } from 'src/typings/names/ImageName';
-import type { StationName } from 'src/typings/names/StationName';
 import type { Table } from 'src/typings/Table';
 import { createGrid } from 'src/utils/createGrid';
 import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
 
 export class World extends Phaser.Scene {
-  private readonly agents = {} as Table<AgentName, Agent>;
+  private readonly agents = new ObSet<Agent>()
+
+    .on('add', ({ value }) => {
+      console.log(`🐣 spawned ${value.name}`);
+    })
+    .on('delete', ({ value }) => {
+      console.log(`⚰ rest in pepperoni ${value.name}`);
+    });
 
   private readonly images = {} as Table<ImageName, GameObjects.Image>;
-
-  private readonly stations = {} as Table<StationName, Station>;
 
   private readonly planningCooldownInMs = 1000 as const;
 
@@ -42,7 +44,6 @@ export class World extends Phaser.Scene {
     this.spawnGrass();
     this.spawnImages();
     this.spawnAgents();
-    this.spawnStations();
     this.spawnPlans();
   }
 
@@ -59,16 +60,16 @@ export class World extends Phaser.Scene {
   };
 
   private readonly replan = (): void => {
-    for (const name of AGENT_NAMES) {
-      this.agents[name].makePlan();
+    for (const agent of this.agents) {
+      agent.makePlan();
     }
 
     window.setTimeout(this.queueReplan);
   };
 
   private updateAgents(this: this): void {
-    for (const name of AGENT_NAMES) {
-      this.agents[name].update();
+    for (const agent of this.agents) {
+      agent.update();
     }
   }
 
@@ -86,24 +87,16 @@ export class World extends Phaser.Scene {
     }
   }
 
-  private spawnStations(this: this): void {
-    for (const name of STATION_NAMES) {
-      this.stations[name] = new Station({
-        image: this.images[name],
-        name,
-        position: startingPositions[name],
-      });
-    }
-  }
-
   private spawnAgents(this: this): void {
     for (const name of AGENT_NAMES) {
-      this.agents[name] = new Agent({
-        derivedActions: startingActions[name],
+      const agent = new Agent({
+        actions: startingActions[name],
         image: this.images[name],
         initialGoal: startingGoals[name],
         name,
       });
+
+      this.agents.add(agent);
     }
   }
 }

@@ -1,5 +1,5 @@
-import type { Action } from 'src/actions/Action';
-import type { Agent } from 'src/ai/Agent';
+import type { Action } from 'src/entities/Action';
+import type { Agent } from 'src/entities/Agent';
 import type { LazyAction } from 'src/typings/LazyAction';
 
 export const boundToAction = (agent: Agent) => {

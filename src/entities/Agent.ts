@@ -1,77 +1,85 @@
+import { ObSet } from 'obset';
 import type { GameObjects } from 'phaser';
-import type { Action } from 'src/actions/Action';
-import { makePlan } from 'src/ai/makePlan';
-import type { LazyAction } from 'src/typings/LazyAction';
+import type { Action } from 'src/entities/Action';
+import { makePlan } from 'src/planning/makePlan';
+import type { Flag } from 'src/typings/Flag';
 import type { AgentName } from 'src/typings/names/AgentName';
 import type { FiniteStateName } from 'src/typings/names/FiniteStateName';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
+import type { AgentProps } from 'src/typings/props/AgentProps';
 import { arePreconditionsMetBy } from 'src/utils/arePreconditionsMetBy';
 import { counted } from 'src/utils/counted';
 import { boundToAction } from 'src/utils/mapping/boundToAction';
 import { distanceBetween } from 'src/utils/shims/distanceBetween';
 
-type Props = {
-  readonly derivedActions: readonly LazyAction[];
-  readonly image: GameObjects.Image;
-  readonly initialGoal: ResourceName;
-  readonly name: AgentName;
-};
-
 export class Agent {
-  ////////////////////////////////////////////////////////////////////////////////////
-  // * Public *
-  ////////////////////////////////////////////////////////////////////////////////////
+  readonly availableActions: readonly Action[];
+
+  private readonly costInMs = 500; // 1 cost = 0.5s;
+
+  facts: ObSet<ResourceName> = new ObSet<ResourceName>()
+    .on('add', ({ value }) => {
+      console.log(`🏆 gained ${value}`);
+    })
+    .on('delete', ({ value }) => {
+      console.log(`💸 lost ${value}`);
+    });
+
+  goal: ResourceName;
+
+  private readonly image: GameObjects.Image;
+
+  readonly state: ObSet<Flag> = new ObSet<Flag>()
+    .on('add', ({ value }) => {
+      console.log(`⏳ ${this.name} started ${value}`);
+    })
+    .on('delete', ({ value }) => {
+      console.log(`⌛ ${this.name} stopped ${value}`);
+    });
+
   readonly name: AgentName;
 
-  constructor({ derivedActions, image, initialGoal, name }: Props) {
-    this.availableActions = derivedActions.map(boundToAction(this)) as readonly Action[];
+  plan: Action[] = [];
+
+  private get target(): Position | null {
+    return this.plan.at(-1)?.target ?? null;
+  }
+
+  constructor({ actions, image, initialGoal, name }: AgentProps) {
+    this.availableActions = actions.map(boundToAction(this)) as readonly Action[];
     this.image = image;
     this.goal = initialGoal;
     this.name = name;
   }
 
-  update(this: this): void {
-    this.state();
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////////
-  // * Helper Function *
-  ////////////////////////////////////////////////////////////////////////////////////
-
-  /** NOTE: passes `this` to `DerivedAction`. */
-
   ////////////////////////////////////////////////////////////////////////////////////
   // * State Machine *
   ////////////////////////////////////////////////////////////////////////////////////
 
-  private state = this.idling;
-
-  private readonly costInMs = 500; // 1 cost = 0.5s;
-
-  private isWaiting = false;
+  update = this.idling;
 
   private idling(this: this): void {
     if (!this.plan.length) return;
 
-    this.start('moving');
+    this.transitionTo('moving');
   }
 
   private interacting(this: this): void {
-    if (this.isWaiting) return;
+    if (this.state.has('waiting')) return;
 
     const nextAction = this.proceedWithPlan();
 
     if (!nextAction) return;
 
-    this.isWaiting = true;
+    this.state.add('waiting');
 
     const performAction = (): void => {
-      this.isWaiting = false;
+      this.state.delete('waiting');
 
       this.attempt(nextAction);
 
-      this.start('idling');
+      this.transitionTo('idling');
     };
 
     const kickOffTimer = (): void => {
@@ -88,22 +96,16 @@ export class Agent {
 
     if (!hasArrived) return;
 
-    this.start('interacting');
+    this.transitionTo('interacting');
   }
 
-  private start(this: this, name: FiniteStateName): void {
+  private transitionTo(this: this, name: FiniteStateName): void {
     this.update = this[name];
   }
 
   ////////////////////////////////////////////////////////////////////////////////////
   // * Actions *
   ////////////////////////////////////////////////////////////////////////////////////
-
-  private readonly image: GameObjects.Image;
-
-  private get target(): Position | null {
-    return this.plan.at(-1)?.target ?? null;
-  }
 
   private moveToTarget(this: this): boolean {
     if (!this.target) return false;
@@ -142,14 +144,10 @@ export class Agent {
 
     for (const gained of gains) {
       this.facts.add(gained);
-
-      console.log(`🏆 gained: ${gained}`);
     }
 
     for (const lost of loses) {
       this.facts.delete(lost);
-
-      console.log(`💸 lost: ${lost}`);
     }
 
     console.groupEnd();
@@ -159,18 +157,10 @@ export class Agent {
   // * Planning *
   ////////////////////////////////////////////////////////////////////////////////////
 
-  readonly availableActions: readonly Action[];
-
-  facts: Set<ResourceName> = new Set<ResourceName>();
-
-  goal: ResourceName;
-
-  plan: Action[] = [];
-
   makePlan(this: this): void {
     // console.count(`🧠 ${this.name} -> planning`);
 
-    const plan: readonly Action[] = makePlan(this.availableActions, this.facts, this.goal);
+    const plan: readonly Action[] = makePlan(this.availableActions, new Set<ResourceName>(this.facts), this.goal);
 
     this.plan = plan as Action[];
   }
@@ -178,6 +168,4 @@ export class Agent {
   proceedWithPlan(this: this): Action | null {
     return this.plan.pop() ?? null;
   }
-
-  ////////////////////////////////////////////////////////////////////////////////////
 }

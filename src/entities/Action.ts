@@ -1,13 +1,7 @@
-import type { Agent } from 'src/ai/Agent';
+import type { ActionProps } from 'src/typings/props/ActionProps';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 import type { Position } from 'src/typings/Position';
 import { toSnakeCase } from 'src/utils/mapping/toSnakeCase';
-
-export type ActionProps = {
-  readonly agent: Agent;
-  readonly cost: number;
-  readonly target: Position;
-};
 
 // Action should really have a concept of doer/performer (of action) & target (of action)
 
@@ -16,7 +10,7 @@ export class Action {
 
   readonly name: string;
 
-  readonly target: Position;// should really be over at `Station.position`
+  readonly target: Position; // should really be over at `Station.position`
 
   readonly before = {
     has: new Set<ResourceName>(),

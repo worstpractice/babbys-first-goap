@@ -1,5 +1,5 @@
-import type { Action } from 'src/actions/Action';
-import type { Agent } from 'src/ai/Agent';
+import type { Action } from 'src/entities/Action';
+import type { Agent } from 'src/entities/Agent';
 import type { GraphNode } from 'src/typings/GraphNode';
 
 export const arePreconditionsMetBy = <T extends Agent | GraphNode>({ facts }: T, { before }: Action): boolean => {

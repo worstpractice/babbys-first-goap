@@ -1,3 +1,4 @@
+import { ObSet } from 'obset';
 import type { Action } from 'src/entities/Action';
 import type { GraphNode } from 'src/typings/GraphNode';
 import type { ResourceName } from 'src/typings/names/ResourceName';
@@ -12,7 +13,7 @@ export const pathfind = (parent: GraphNode, actions: readonly Action[], goal: Re
 
     const { gains, loses } = action.after;
 
-    const currentFacts: Set<ResourceName> = new Set<ResourceName>([...parent.facts, ...gains] as const);
+    const currentFacts: ObSet<ResourceName> = new ObSet<ResourceName>([...parent.facts, ...gains] as const);
 
     for (const lost of loses) {
       currentFacts.delete(lost);

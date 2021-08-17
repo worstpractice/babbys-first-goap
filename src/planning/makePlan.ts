@@ -1,3 +1,4 @@
+import type { ObSet } from 'obset';
 import type { Action } from 'src/entities/Action';
 import { pathfind } from 'src/planning/pathfind';
 import { traverseGraph } from 'src/planning/traverseGraph';
@@ -5,7 +6,7 @@ import { warn } from 'src/planning/warn';
 import type { GraphNode } from 'src/typings/GraphNode';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 
-export const makePlan = (actions: readonly Action[], facts: Set<ResourceName>, goal: ResourceName): readonly Action[] => {
+export const makePlan = (actions: readonly Action[], facts: ObSet<ResourceName>, goal: ResourceName): readonly Action[] => {
   const root: GraphNode = {
     action: null,
     cost: 0,

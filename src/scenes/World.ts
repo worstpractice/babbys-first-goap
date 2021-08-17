@@ -17,10 +17,10 @@ export class World extends Phaser.Scene {
   private readonly agents = new ObSet<Agent>()
 
     .on('add', ({ value }) => {
-      console.log(`🐣 spawned ${value.name}`);
+      console.log(`🐣 ${value.name} spawned`);
     })
     .on('delete', ({ value }) => {
-      console.log(`⚰ rest in pepperoni ${value.name}`);
+      console.log(`⚰ ${value.name} died`);
     });
 
   private readonly images = {} as Table<ImageName, GameObjects.Image>;

@@ -30,13 +30,19 @@ export class Agent {
 
   private readonly image: GameObjects.Image;
 
-  readonly state: ObSet<Flag> = new ObSet<Flag>()
-    .on('add', ({ value }) => {
-      console.log(`⏳ ${this.name} started ${value}`);
-    })
-    .on('delete', ({ value }) => {
-      console.log(`⌛ ${this.name} stopped ${value}`);
-    });
+  readonly state: ObSet<Flag> = new ObSet<Flag>();
+  // .on('add', 'waiting', ({ value }) => {
+  //   console.log(`⏳ ${this.name} started ${value}`);
+  // })
+  // .on('delete', 'waiting', ({ value }) => {
+  //   console.log(`⌛ ${this.name} stopped ${value}`);
+  // })
+  // .on('add', 'planning', ({ value }) => {
+  //   console.log(`🧠 ${this.name} started ${value}`);
+  // })
+  // .on('delete', 'planning', ({ value }) => {
+  //   console.log(`🧠 ${this.name} stopped ${value}`);
+  // });
 
   readonly name: AgentName;
 
@@ -138,7 +144,7 @@ export class Agent {
   }
 
   private execute(this: this, { after, name }: Action): void {
-    console.groupCollapsed(counted(`🏁 ${this.name} -> ${name}`));
+    console.group(counted(`🏁 ${this.name} completed ${name}`));
 
     const { gains, loses } = after;
 
@@ -160,9 +166,13 @@ export class Agent {
   makePlan(this: this): void {
     // console.count(`🧠 ${this.name} -> planning`);
 
-    const plan: readonly Action[] = makePlan(this.availableActions, new Set<ResourceName>(this.facts), this.goal);
+    this.state.add('planning');
+
+    const plan: readonly Action[] = makePlan(this.availableActions, this.facts, this.goal);
 
     this.plan = plan as Action[];
+
+    this.state.delete('planning');
   }
 
   proceedWithPlan(this: this): Action | null {

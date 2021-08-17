@@ -1,7 +1,8 @@
+import type { ObSet } from 'obset';
 import type { Action } from 'src/entities/Action';
 import type { ResourceName } from 'src/typings/names/ResourceName';
 
-export const warn = (reason: string, actions: readonly Action[], facts: Set<ResourceName>, goal: ResourceName): void => {
+export const warn = (reason: string, actions: readonly Action[], facts: ObSet<ResourceName>, goal: ResourceName): void => {
   console.group();
   console.warn(reason);
   console.warn(`Goal "${goal}" is unreachable!`);
